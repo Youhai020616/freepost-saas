@@ -66,7 +66,7 @@ export function Typewriter({
     );
 
     return () => clearTimeout(timeout);
-  }, x[
+  }, [
     currentIndex,
     isDeleting,
     currentText,

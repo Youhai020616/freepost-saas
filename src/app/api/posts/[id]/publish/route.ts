@@ -5,17 +5,18 @@ import { requireSessionAndWorkspace } from "@/lib/guards";
 // POST /api/posts/[id]/publish - mock immediate publish
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { workspaceId } = await requireSessionAndWorkspace();
-    const existing = await prisma.post.findUnique({ where: { id: params.id } });
+    const { id } = await params;
+    const existing = await prisma.post.findUnique({ where: { id } });
     if (!existing || existing.workspaceId !== workspaceId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     // TODO: call provider adapters to publish
-    await prisma.post.update({ where: { id: params.id }, data: { status: "PUBLISHED", publishedAt: new Date() } });
+    await prisma.post.update({ where: { id }, data: { status: "PUBLISHED", publishedAt: new Date() } });
     return NextResponse.json({ success: true });
   } catch (e: any) {
     const msg = String(e?.message || e);

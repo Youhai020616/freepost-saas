@@ -5,11 +5,12 @@ import { requireSessionAndWorkspace } from "@/lib/guards";
 // GET /api/posts/[id]
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { workspaceId } = await requireSessionAndWorkspace();
-    const post = await prisma.post.findUnique({ where: { id: params.id } });
+    const { id } = await params;
+    const post = await prisma.post.findUnique({ where: { id } });
     if (!post || post.workspaceId !== workspaceId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -24,16 +25,17 @@ export async function GET(
 // PATCH /api/posts/[id]
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { workspaceId } = await requireSessionAndWorkspace();
     const body = await req.json();
-    const existing = await prisma.post.findUnique({ where: { id: params.id } });
+    const { id } = await params;
+    const existing = await prisma.post.findUnique({ where: { id } });
     if (!existing || existing.workspaceId !== workspaceId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    const post = await prisma.post.update({ where: { id: params.id }, data: body });
+    const post = await prisma.post.update({ where: { id }, data: body });
     return NextResponse.json({ data: post });
   } catch (e: any) {
     const msg = String(e?.message || e);
@@ -45,15 +47,16 @@ export async function PATCH(
 // DELETE /api/posts/[id]
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { workspaceId } = await requireSessionAndWorkspace();
-    const existing = await prisma.post.findUnique({ where: { id: params.id } });
+    const { id } = await params;
+    const existing = await prisma.post.findUnique({ where: { id } });
     if (!existing || existing.workspaceId !== workspaceId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    await prisma.post.delete({ where: { id: params.id } });
+    await prisma.post.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (e: any) {
     const msg = String(e?.message || e);

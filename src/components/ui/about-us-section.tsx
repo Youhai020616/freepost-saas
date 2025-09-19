@@ -19,7 +19,7 @@ import {
   Target,
   Heart,
 } from "lucide-react"
-import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion"
+import { motion, useScroll, useTransform, useInView, useSpring, type Variants } from "framer-motion"
 
 export default function AboutUsSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -59,7 +59,7 @@ export default function AboutUsSection() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" },
+      transition: { duration: 0.6 },
     },
   }
 
@@ -361,10 +361,7 @@ interface ServiceItemProps {
   secondaryIcon?: React.ReactNode
   title: string
   description: string
-  variants: {
-    hidden: { opacity: number; y?: number }
-    visible: { opacity: number; y?: number; transition: { duration: number; ease: string } }
-  }
+  variants: Variants
   delay: number
   direction: "left" | "right"
 }
