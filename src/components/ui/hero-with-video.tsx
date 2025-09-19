@@ -86,7 +86,7 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
   };
 
   return (
-    <main className="absolute inset-0 bg-background overflow-y-auto">
+    <main className="relative min-h-screen">
       <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* --- Navbar --- */}
         <div className="py-2 relative z-20 flex items-center justify-between gap-4">
