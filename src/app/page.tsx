@@ -1,8 +1,9 @@
 import { NavbarHero } from "@/components/ui/hero-with-video";
 import { FeaturesScrollDemo, AnalyticsScrollDemo, SchedulingScrollDemo } from "@/components/ui/features-scroll";
-import { FeaturesGrid } from "@/components/ui/features-grid";
+
+import { FeaturesShowcase } from "@/components/ui/features-showcase";
 import { PricingSection } from "@/components/ui/pricing-section";
-import { CTASection } from "@/components/ui/cta-section";
+import { FreepostLogoCarousel } from "@/components/ui/freepost-logo-carousel";
 import { AuroraSection } from "@/components/ui/aurora-section";
 
 export default function Home() {
@@ -26,18 +27,14 @@ export default function Home() {
       <AnalyticsScrollDemo />
       <SchedulingScrollDemo />
 
-      {/* Features Grid with Aurora Background */}
-      <AuroraSection intensity="medium">
-        <FeaturesGrid />
-      </AuroraSection>
+      {/* Features Showcase */}
+      <FeaturesShowcase />
 
       {/* Pricing Section */}
       <PricingSection />
 
-      {/* Call to Action with Aurora Background */}
-      <AuroraSection intensity="strong">
-        <CTASection />
-      </AuroraSection>
+      {/* Logo Carousel CTA */}
+      <FreepostLogoCarousel />
     </div>
   );
 }

@@ -96,19 +96,35 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
             </a>
             <nav className="hidden lg:flex text-muted-foreground font-medium">
               <ul className="flex items-center space-x-2">
-                <li><a href="#features" className="hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">Features</a></li>
+                <li className="relative">
+                  <button onClick={() => toggleDropdown('desktop-features')} className="flex items-center hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">
+                    Features<ChevronDown className={`h-4 w-4 ml-1 transition-transform ${openDropdown === 'desktop-features' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openDropdown === 'desktop-features' && (
+                    <ul className="absolute top-full left-0 mt-2 p-2 bg-card border border-border shadow-lg rounded-xl z-20 w-56">
+                      <li><a href="/features" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">All Features</a></li>
+                      <li><a href="/features#scheduling" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Smart Scheduling</a></li>
+                      <li><a href="/features#analytics" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Advanced Analytics</a></li>
+                      <li><a href="/features#collaboration" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Team Collaboration</a></li>
+                      <li><a href="/features#bulk" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Bulk Actions</a></li>
+                      <li><a href="/features#security" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Security & Reliability</a></li>
+                      <li><a href="/features#platforms" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Multi-Platform</a></li>
+                    </ul>
+                  )}
+                </li>
                 <li className="relative">
                   <button onClick={() => toggleDropdown('desktop-resources')} className="flex items-center hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">
                     Resources<ChevronDown className={`h-4 w-4 ml-1 transition-transform ${openDropdown === 'desktop-resources' ? 'rotate-180' : ''}`} />
                   </button>
                   {openDropdown === 'desktop-resources' && (
                     <ul className="absolute top-full left-0 mt-2 p-2 bg-card border border-border shadow-lg rounded-xl z-20 w-48">
-                      <li><a href="#blog" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Blog</a></li>
-                      <li><a href="#help" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Help Center</a></li>
+                      <li><a href="/blog" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Blog</a></li>
+                      <li><a href="/resources" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Learning Center</a></li>
                     </ul>
                   )}
                 </li>
-                <li><a href="#about" className="hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">About</a></li>
+                <li><a href="/about" className="hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">About</a></li>
+                <li><a href="/dashboard" className="hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">Dashboard</a></li>
                 <li className="relative">
                   <button onClick={() => toggleDropdown('desktop-pricing')} className="flex items-center hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">
                     Pricing<ChevronDown className={`h-4 w-4 ml-1 transition-transform ${openDropdown === 'desktop-pricing' ? 'rotate-180' : ''}`} />
@@ -127,8 +143,8 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
 
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-3">
-              <a href="/sign-in" className="text-foreground hover:text-muted-foreground cursor-pointer py-2 px-4 text-sm capitalize font-medium transition-colors rounded-xl">Sign In</a>
-              <a href="/sign-up" className="bg-foreground hover:bg-muted-foreground text-background py-2.5 px-5 text-sm rounded-xl capitalize font-medium transition-colors flex items-center gap-2">
+              <a href="/sign-in" className="bg-black text-white hover:bg-gray-800 cursor-pointer py-2 px-4 text-sm capitalize font-medium transition-colors rounded-xl">Sign In</a>
+              <a href="/sign-up" className="bg-black hover:bg-gray-800 text-white py-2.5 px-5 text-sm rounded-xl capitalize font-medium transition-colors flex items-center gap-2">
                 Get Started<ArrowRight className="h-4 w-4" />
               </a>
             </div>
@@ -139,15 +155,27 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
               </button>
               {isMobileMenuOpen && (
                 <ul className="absolute top-full right-0 mt-2 p-2 shadow-lg bg-card border border-border rounded-xl w-56 z-30">
-                  <li><a href="#features" className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">Features</a></li>
+                  <li><button onClick={() => toggleDropdown('mobile-features')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">
+                      Features<ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === 'mobile-features' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openDropdown === 'mobile-features' && (<ul className="ml-4 mt-1 border-l border-border pl-3">
+                      <li><a href="/features" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">All Features</a></li>
+                      <li><a href="/features#scheduling" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Smart Scheduling</a></li>
+                      <li><a href="/features#analytics" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Advanced Analytics</a></li>
+                      <li><a href="/features#collaboration" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Team Collaboration</a></li>
+                      <li><a href="/features#bulk" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Bulk Actions</a></li>
+                      <li><a href="/features#security" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Security & Reliability</a></li>
+                      <li><a href="/features#platforms" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Multi-Platform</a></li>
+                  </ul>)}</li>
                   <li><button onClick={() => toggleDropdown('mobile-resources')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">
                       Resources<ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === 'mobile-resources' ? 'rotate-180' : ''}`} />
                   </button>
                   {openDropdown === 'mobile-resources' && (<ul className="ml-4 mt-1 border-l border-border pl-3">
-                      <li><a href="#blog" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Blog</a></li>
-                      <li><a href="#help" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Help Center</a></li>
+                      <li><a href="/blog" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Blog</a></li>
+                      <li><a href="/resources" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Learning Center</a></li>
                   </ul>)}</li>
-                  <li><a href="#about" className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">About</a></li>
+                  <li><a href="/about" className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">About</a></li>
+                  <li><a href="/dashboard" className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">Dashboard</a></li>
                   <li><button onClick={() => toggleDropdown('mobile-pricing')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">
                       Pricing<ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === 'mobile-pricing' ? 'rotate-180' : ''}`} />
                   </button>
@@ -157,8 +185,8 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
                       <li><a href="#team" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Team Plan</a></li>
                   </ul>)}</li>
                   <li className="border-t border-border mt-2 pt-2 space-y-2">
-                    <a href="/sign-in" className="block w-full text-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">Sign In</a>
-                    <a href="/sign-up" className="w-full bg-foreground text-background hover:bg-muted-foreground px-3 py-2.5 text-sm rounded-lg flex items-center justify-center gap-2 font-medium">
+                    <a href="/sign-in" className="block w-full text-center px-3 py-2 text-sm bg-black text-white hover:bg-gray-800 rounded-lg">Sign In</a>
+                    <a href="/sign-up" className="w-full bg-black text-white hover:bg-gray-800 px-3 py-2.5 text-sm rounded-lg flex items-center justify-center gap-2 font-medium">
                       Get Started<ArrowRight className="h-4 w-4" />
                     </a>
                   </li>
@@ -184,9 +212,9 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
                   className="w-full max-w-xs bg-muted border-border text-foreground placeholder-muted-foreground font-medium pl-10 pr-4 py-2 text-sm sm:pl-11 sm:py-3 sm:text-base rounded-full focus:outline-none focus:ring-2 focus:ring-ring" 
                 />
               </div>
-              <button 
-                onClick={handleEmailSubmit} 
-                className="bg-foreground hover:bg-muted-foreground text-background px-5 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded-full normal-case font-medium transition-colors flex items-center gap-2"
+              <button
+                onClick={handleEmailSubmit}
+                className="bg-black hover:bg-gray-800 text-white px-5 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded-full normal-case font-medium transition-colors flex items-center gap-2"
               >
                 Join Now<ArrowRight className="h-4 w-4" />
               </button>

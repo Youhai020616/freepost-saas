@@ -192,7 +192,7 @@ function SignInForm() {
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || "Sign in failed");
-    if (json.slug) window.location.href = `/w/${json.slug}`;
+    if (json.slug) window.location.href = '/dashboard';
   }
   const handleSignIn = (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); console.log("UI: Sign In form submitted"); };
   return (
@@ -225,7 +225,7 @@ function SignUpForm() {
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || "Sign up failed");
-    if (json.slug) window.location.href = `/w/${json.slug}`;
+    if (json.slug) window.location.href = '/dashboard';
   }
   const handleSignUp = (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); console.log("UI: Sign Up form submitted"); };
   return (

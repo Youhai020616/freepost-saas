@@ -36,28 +36,6 @@ const initialPosts: SocialPost[] = [
     hashtags: ["SocialMediaAutomation", "Guide", "Marketing"],
     bgColorClass: "bg-blue-50 dark:bg-blue-900/20",
   },
-  {
-    id: "p4",
-    content: "Quick tip Tuesday: Did you know you can schedule posts across multiple platforms simultaneously? Save time and maintain consistency! 🕒📱",
-    platform: "facebook",
-    scheduledTime: "2025-01-21T12:00:00",
-    status: "scheduled",
-    engagement: 0,
-    accentColor: "#1877f2",
-    hashtags: ["TipTuesday", "Productivity", "SocialMediaTips"],
-    bgColorClass: "bg-blue-50 dark:bg-blue-900/20",
-  },
-  {
-    id: "p5",
-    content: "New video tutorial is live! Learn how to create engaging content that converts. Link in bio 🎥✨ #ContentCreation #Tutorial #Marketing",
-    platform: "youtube",
-    publishedTime: "2025-01-17T09:30:00",
-    status: "published",
-    engagement: 1203,
-    accentColor: "#ff0000",
-    hashtags: ["ContentCreation", "Tutorial", "Marketing"],
-    bgColorClass: "bg-red-50 dark:bg-red-900/20",
-  },
 ];
 
 const demoNotifications: Notification[] = [
@@ -90,19 +68,26 @@ const demoNotifications: Notification[] = [
   },
 ];
 
-export default function WorkspaceDashboard({ params }: { params: { slug: string } }) {
+export default function TestDashboardPage() {
   const [data, setData] = useState<SocialPost[]>(initialPosts);
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <SocialMediaDashboard
-      title="Freepost Dashboard"
+      title="Freepost"
       user={{
         name: "Alex Chen",
         avatarUrl: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=96&q=80&auto=format&fit=crop"
       }}
       posts={data}
       notifications={demoNotifications}
-      persistKey={`freepost-${params.slug}`}
+      persistKey="freepost-test-dashboard"
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      sidebarCollapsed={sidebarCollapsed}
+      onSidebarCollapsedChange={setSidebarCollapsed}
+      showSearch={true}
       onPostUpdate={(post) => {
         setData((arr) => arr.map((p) => (p.id === post.id ? post : p)));
       }}
