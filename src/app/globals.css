@@ -1,15 +1,42 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tw-animate-css";
 
 @theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --radius: 1rem;
+  --accent: oklch(0.89 0 0);
+  --destructive-foreground: oklch(0.985 0 0);
+  --background: #ffffff;
+  --foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --card: #ffffff;
+  --border: #e5e5e5;
+  --ring: #171717;
+}
+
+.dark {
+  --background: oklch(0.125 0 0);
+  --foreground: #ededed;
+  --accent: oklch(0.229 0 0);
+  --destructive-foreground: oklch(0.985 0 0);
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --card: #1a1a1a;
+  --border: #404040;
+  --ring: #ededed;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,0 +1,211 @@
+// Prisma schema for Freepost SaaS
+// Dev: SQLite; Prod: Vercel Postgres
+// Run: npm run prisma:migrate
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  emailVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Application relations
+  memberships Membership[]
+  workspaces  Workspace[] @relation("WorkspaceOwner")
+
+  // BetterAuth relations
+  sessions Session[]
+  accounts Account[]
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  plan      String   @default("free")
+  ownerId   String
+  owner     User     @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members   Membership[]
+  socialAccounts SocialAccount[]
+  posts     Post[]
+  media     Media[]
+  jobs      SchedulerJob[]
+  subscription Subscription?
+  logs      Log[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Membership {
+  userId      String
+  workspaceId String
+  role        String   @default("member")
+  user        User     @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@id([userId, workspaceId])
+}
+
+model SocialAccount {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  provider     String
+  externalId   String
+  accessToken  String   // encrypted at rest via app-level
+  refreshToken String?  // encrypted at rest
+  meta         Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, provider])
+}
+
+model Post {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  content      String   // could switch to Json
+  variants     Json?
+  status       PostStatus @default(DRAFT)
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  targetAccounts Json?
+  mediaIds     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+  jobs         SchedulerJob[]
+
+  @@index([workspaceId, status, scheduledAt])
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  url          String
+  thumbUrl     String?
+  mime         String
+  size         Int
+  duration     Int?
+  width        Int?
+  height       Int?
+  createdAt    DateTime @default(now())
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId])
+}
+
+model SchedulerJob {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  postId       String
+  runAt        DateTime?
+  cron         String?
+  status       JobStatus @default(QUEUED)
+  lastError    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+  post         Post      @relation(fields: [postId], references: [id])
+
+  @@index([workspaceId, status, runAt])
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+model Subscription {
+  id           String   @id @default(cuid())
+  workspaceId  String   @unique
+  provider     String   @default("stripe")
+  plan         String   @default("free")
+  status       String   @default("inactive")
+  currentPeriodEnd DateTime?
+  customerId   String?
+  meta         Json?
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model Log {
+  id          String   @id @default(cuid())
+  workspaceId String
+  level       String
+  message     String
+  data        Json?
+  createdAt   DateTime @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, level])
+}
+
+model Cache {
+  key       String  @id
+  value     Json
+  expiresAt DateTime?
+}
+
+// BetterAuth required tables
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+}
