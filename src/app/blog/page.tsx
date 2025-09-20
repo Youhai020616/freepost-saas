@@ -11,7 +11,7 @@ const blogPosts = [
     author: "Sarah Johnson",
     date: "Dec 15, 2023",
     readTime: "5 min read",
-    image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=600&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80",
     category: "Trends",
     featured: true
   },

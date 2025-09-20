@@ -9,7 +9,7 @@ const features = [
     icon: Calendar,
     title: "Smart Scheduling",
     description: "Schedule posts across all platforms with AI-powered optimal timing suggestions.",
-    image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80",
     color: "from-blue-500 to-cyan-400"
   },
   {
@@ -49,7 +49,7 @@ const features = [
     icon: Globe,
     title: "Multi-Platform",
     description: "Connect Twitter, Facebook, Instagram, LinkedIn, and more from a single dashboard.",
-    image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80",
     color: "from-indigo-500 to-blue-400"
   }
 ];

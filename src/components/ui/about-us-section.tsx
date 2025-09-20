@@ -222,8 +222,8 @@ export default function AboutUsSection() {
                 whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=600&auto=format&fit=crop&q=80"
-                  alt="Social Media Dashboard"
+                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80"
+                  alt="Content Calendar Dashboard on Laptop Screen"
                   className="w-full h-full object-cover"
                 />
                 <motion.div

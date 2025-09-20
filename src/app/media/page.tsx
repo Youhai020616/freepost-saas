@@ -29,7 +29,7 @@ const mediaItems = [
     dimensions: '1920x1080',
     uploadDate: '2025-01-15',
     tags: ['product', 'launch', 'hero'],
-    url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&auto=format&fit=crop&q=80',
+    url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&auto=format&fit=crop&q=80',
     folder: 'Product Launch'
   },
   {
@@ -51,7 +51,7 @@ const mediaItems = [
     dimensions: '1080x1080',
     uploadDate: '2025-01-13',
     tags: ['tips', 'social-media', 'infographic'],
-    url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&auto=format&fit=crop&q=80',
+    url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&auto=format&fit=crop&q=80',
     folder: 'Educational'
   },
   {

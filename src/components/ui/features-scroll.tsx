@@ -22,7 +22,7 @@ export function FeaturesScrollDemo() {
         }
       >
         <Image
-          src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80"
+          src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80"
           alt="Freepost Dashboard - Social Media Management Interface"
           height={720}
           width={1400}
