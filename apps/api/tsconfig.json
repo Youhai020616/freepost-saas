@@ -9,11 +9,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "strict": true,
-    "skipLibCheck": true,
-    "paths": {
-      "@freepost/db": ["../../packages/db/src"],
-      "@freepost/types": ["../../packages/types/src"]
-    }
+    "skipLibCheck": true
   },
   "include": ["src/**/*"]
 }

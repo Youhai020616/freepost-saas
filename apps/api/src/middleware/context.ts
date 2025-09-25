@@ -1,5 +1,8 @@
 import type { Context } from 'hono'
-import { prisma } from '@freepost/db'
+import { PrismaClient } from '@prisma/client'
+
+// Lazy prisma to avoid depending on workspace package build during API compile
+const prisma = new PrismaClient({ log: ['error', 'warn'] })
 
 export type RequestContext = {
   userId: string
@@ -7,9 +10,7 @@ export type RequestContext = {
   slug: string
 }
 
-// Temporary dev auth: read userId from header `x-user-id`.
-// In production, replace with BetterAuth adapter for Hono and real session parsing.
-export async function requireSessionAndWorkspace(c: Context<{ Params: { slug: string } }>): Promise<RequestContext> {
+export async function requireSessionAndWorkspace(c: Context): Promise<RequestContext> {
   const slug = c.req.param('slug')
   if (!slug) throw new Error('workspace_slug_required')
 

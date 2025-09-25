@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
-import { prisma } from '@freepost/db'
+import { PrismaClient } from '@prisma/client'
 import { requireSessionAndWorkspace } from '../middleware/context'
+const prisma = new PrismaClient({ log: ['error', 'warn'] })
 
 // Simple in-memory state store for demo/dev
 const stateStore = new Map<string, { slug: string; userId: string; returnTo?: string }>()
@@ -9,7 +10,7 @@ function randomState() { return Math.random().toString(36).slice(2) + Date.now()
 export const oauth = new Hono()
 
 // GET /w/:slug/oauth/:provider/start
-oauth.get('/w/:slug/oauth/:provider/start', async (c) => {
+oauth.get('/w/:slug/oauth/:provider/start', async (c: any) => {
   const provider = c.req.param('provider')
   const slug = c.req.param('slug')
   const returnTo = c.req.query('return_to') || undefined
@@ -29,7 +30,7 @@ oauth.get('/w/:slug/oauth/:provider/start', async (c) => {
 })
 
 // GET /w/:slug/oauth/:provider/callback
-oauth.get('/w/:slug/oauth/:provider/callback', async (c) => {
+oauth.get('/w/:slug/oauth/:provider/callback', async (c: any) => {
   const provider = c.req.param('provider')
   const slug = c.req.param('slug')
   const code = c.req.query('code')

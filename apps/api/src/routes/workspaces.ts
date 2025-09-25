@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
-import { prisma } from '@freepost/db'
+import { PrismaClient } from '@prisma/client'
 import { requireSessionAndWorkspace } from '../middleware/context'
+const prisma = new PrismaClient({ log: ['error', 'warn'] })
 
 export const workspaces = new Hono()
 
@@ -8,8 +9,8 @@ export const workspaces = new Hono()
 workspaces.get('/w/:slug/workspaces', async (c) => {
   try {
     const { userId } = await requireSessionAndWorkspace(c)
-    const memberships = await prisma.membership.findMany({ where: { userId }, include: { workspace: true } })
-    return c.json({ data: memberships.map((m) => m.workspace) })
+    const memberships = await prisma.membership.findMany({ where: { userId }, include: { workspace: true } as any })
+    return c.json({ data: memberships.map((m: any) => m.workspace) })
   } catch (e: any) {
     const msg = String(e?.message || e)
     const status = msg === 'unauthorized' ? 401 : msg === 'forbidden' ? 403 : msg === 'workspace_not_found' ? 404 : 400

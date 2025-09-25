@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
-import { prisma } from '@freepost/db'
+import { PrismaClient } from '@prisma/client'
 import { requireSessionAndWorkspace } from '../middleware/context'
+const prisma = new PrismaClient({ log: ['error', 'warn'] })
 
 export const posts = new Hono()
 
@@ -44,7 +45,7 @@ posts.post('/w/:slug/posts', async (c) => {
 })
 
 // GET /w/:slug/posts/:id
-posts.get('/w/:slug/posts/:id', async (c) => {
+posts.get('/w/:slug/posts/:id', async (c: any) => {
   try {
     const { workspaceId } = await requireSessionAndWorkspace(c)
     const { id } = c.req.param()
@@ -59,14 +60,14 @@ posts.get('/w/:slug/posts/:id', async (c) => {
 })
 
 // PATCH /w/:slug/posts/:id
-posts.patch('/w/:slug/posts/:id', async (c) => {
+posts.patch('/w/:slug/posts/:id', async (c: any) => {
   try {
     const { workspaceId } = await requireSessionAndWorkspace(c)
     const { id } = c.req.param()
     const body = await c.req.json()
 
 // POST /w/:slug/posts/:id/publish
-posts.post('/w/:slug/posts/:id/publish', async (c) => {
+posts.post('/w/:slug/posts/:id/publish', async (c: any) => {
   try {
     const { workspaceId } = await requireSessionAndWorkspace(c)
     const { id } = c.req.param()
@@ -82,7 +83,7 @@ posts.post('/w/:slug/posts/:id/publish', async (c) => {
 })
 
 // POST /w/:slug/posts/schedule
-posts.post('/w/:slug/posts/schedule', async (c) => {
+posts.post('/w/:slug/posts/schedule', async (c: any) => {
   try {
     const { workspaceId } = await requireSessionAndWorkspace(c)
     const body = await c.req.json()
