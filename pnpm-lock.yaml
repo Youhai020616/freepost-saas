@@ -23,9 +23,15 @@ importers:
         specifier: ^4.6.9
         version: 4.9.8
     devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.17
       tsx:
         specifier: ^4.19.2
         version: 4.20.5
+      typescript:
+        specifier: ^5
+        version: 5.9.2
 
   apps/web:
     dependencies:

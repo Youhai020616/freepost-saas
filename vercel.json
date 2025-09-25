@@ -1,8 +1,0 @@
-{
-  "functions": [
-    {
-      "path": "/api/cron/publish",
-      "schedule": "* * * * *"
-    }
-  ]
-}
