@@ -1,4 +1,5 @@
-export default function SettingsPage({ params }: { params: { slug: string } }) {
+export default async function SettingsPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Settings</h1>

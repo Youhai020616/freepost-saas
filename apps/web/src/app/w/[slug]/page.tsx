@@ -90,7 +90,8 @@ const demoNotifications: Notification[] = [
   },
 ];
 
-export default function WorkspaceDashboard({ params }: { params: { slug: string } }) {
+export default async function WorkspaceDashboard({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const [data, setData] = useState<SocialPost[]>(initialPosts);
 
   return (
@@ -102,7 +103,7 @@ export default function WorkspaceDashboard({ params }: { params: { slug: string 
       }}
       posts={data}
       notifications={demoNotifications}
-      persistKey={`freepost-${params.slug}`}
+      persistKey={`freepost-${slug}`}
       onPostUpdate={(post) => {
         setData((arr) => arr.map((p) => (p.id === post.id ? post : p)));
       }}

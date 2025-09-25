@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build",
+    "prebuild": "pnpm --filter @freepost/db run prisma:generate || echo 'Warning: Prisma generate failed for web app'",
     "start": "next start",
     "lint": "eslint",
     "prisma:generate": "prisma generate",

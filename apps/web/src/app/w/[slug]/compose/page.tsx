@@ -1,4 +1,5 @@
-export default function ComposePage({ params }: { params: { slug: string } }) {
+export default async function ComposePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Compose</h1>

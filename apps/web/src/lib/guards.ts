@@ -14,7 +14,7 @@ export async function requireSessionAndWorkspace(): Promise<RequestContext> {
   const slug = (await headers()).get("x-workspace-slug");
 
   // Prefer slug from middleware; otherwise, fallback to first membership
-  let workspaceId: string | null = null;
+  let workspaceId: string;
   if (slug) {
     const ws = await prisma.workspace.findUnique({ where: { slug } });
     if (!ws) throw new Error("workspace_not_found");

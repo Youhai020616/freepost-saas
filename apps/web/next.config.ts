@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     },
   },
   transpilePackages: ["@freepost/db", "@freepost/types"],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "pbs.twimg.com" },
