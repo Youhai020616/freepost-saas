@@ -15,5 +15,9 @@
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "prisma": "^6.16.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
   }
 }

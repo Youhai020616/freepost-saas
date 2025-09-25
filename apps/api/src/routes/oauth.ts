@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@freepost/db'
 import { requireSessionAndWorkspace } from '../middleware/context'
-const prisma = new PrismaClient({ log: ['error', 'warn'] })
 
 // Simple in-memory state store for demo/dev
 const stateStore = new Map<string, { slug: string; userId: string; returnTo?: string }>()
