@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "projectSettings": {
+          "framework": "nextjs"
+        }
+      }
+    }
+  ],
+  "buildCommand": "pnpm install && pnpm build",
+  "installCommand": "pnpm install",
+  "functions": {
+    "apps/web/src/app/api/cron/publish/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/publish",
+      "schedule": "* * * * *"
+    }
+  ],
+  "env": {
+    "DATABASE_PROVIDER": "postgresql",
+    "PRISMA_SKIP_GENERATE_WARNINGS": "true"
+  }
+}

@@ -1,8 +1,5 @@
 import type { Context } from 'hono'
-import { PrismaClient } from '@prisma/client'
-
-// Lazy prisma to avoid depending on workspace package build during API compile
-const prisma = new PrismaClient({ log: ['error', 'warn'] })
+import { prisma } from '@freepost/db'
 
 export type RequestContext = {
   userId: string

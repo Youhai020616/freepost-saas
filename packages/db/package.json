@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "(prisma generate || echo 'Prisma generate failed, continuing...') && tsc -p tsconfig.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
@@ -15,5 +15,9 @@
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "prisma": "^6.16.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
   }
 }

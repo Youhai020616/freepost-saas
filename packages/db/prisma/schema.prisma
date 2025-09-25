@@ -1,13 +1,14 @@
 // Prisma schema for Freepost SaaS
-// Dev: SQLite; Prod: Vercel Postgres
-// Run: npm run prisma:migrate
+// Uses environment variable for provider selection
+// Dev: SQLite via DATABASE_URL=file:./prisma/dev.db  
+// Prod: PostgreSQL via DATABASE_URL=postgres://...
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = env("DATABASE_PROVIDER")
   url      = env("DATABASE_URL")
 }
 

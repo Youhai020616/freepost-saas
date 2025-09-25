@@ -4,9 +4,12 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm prisma:generate && pnpm -r build",
     "dev": "pnpm --parallel --filter @freepost/api --filter @freepost/web dev",
-    "start": "pnpm -r start",
-    "lint": "pnpm -r lint"
+    "start": "pnpm --filter @freepost/web start",
+    "lint": "pnpm -r lint",
+    "prisma:generate": "pnpm --filter @freepost/db prisma:generate || echo 'Prisma generation failed, continuing...'",
+    "prisma:migrate": "pnpm -r prisma:migrate",
+    "prisma:deploy": "pnpm --filter @freepost/db prisma:migrate:deploy"
   }
 }

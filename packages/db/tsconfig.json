@@ -5,13 +5,15 @@
     "rootDir": "src",
     "declaration": true,
     "emitDeclarationOnly": false,
+    "noEmit": false,
     "module": "ESNext",
     "target": "ES2022",
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "include": ["src/**/*"]
 }
