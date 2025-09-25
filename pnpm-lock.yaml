@@ -10,6 +10,12 @@ importers:
 
   apps/api:
     dependencies:
+      '@freepost/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@freepost/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@hono/node-server':
         specifier: ^1.13.1
         version: 1.19.4(hono@4.9.8)
@@ -126,6 +132,15 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.2
+
+  packages/db:
+    dependencies:
+      '@prisma/client':
+        specifier: ^6.16.2
+        version: 6.16.2(prisma@6.16.2(typescript@5.9.2))(typescript@5.9.2)
+      prisma:
+        specifier: ^6.16.2
+        version: 6.16.2(typescript@5.9.2)
 
   packages/types: {}
 

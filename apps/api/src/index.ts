@@ -5,6 +5,12 @@ import { cors } from 'hono/cors'
 const app = new Hono()
 app.use('*', cors())
 
+import { posts } from './routes/posts'
+import { workspaces } from './routes/workspaces'
+
+app.route('/', posts)
+app.route('/', workspaces)
+
 app.get('/health', (c) => c.json({ ok: true }))
 
 export default app

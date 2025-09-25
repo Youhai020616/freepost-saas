@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  transpilePackages: ["@freepost/db", "@freepost/types"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "pbs.twimg.com" },
