@@ -10,6 +10,9 @@ import { workspaces } from './routes/workspaces'
 
 app.route('/', posts)
 app.route('/', workspaces)
+import { oauth } from './routes/oauth'
+app.route('/', oauth)
+
 
 app.get('/health', (c) => c.json({ ok: true }))
 
