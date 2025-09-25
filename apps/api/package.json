@@ -1,0 +1,18 @@
+{
+  "name": "@freepost/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "hono": "^4.6.9",
+    "@hono/node-server": "^1.13.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}
