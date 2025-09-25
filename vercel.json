@@ -1,0 +1,11 @@
+{
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "buildCommand": "cd apps/web && npm install && npm run build",
+  "installCommand": "npm install -g pnpm && pnpm install",
+  "outputDirectory": "apps/web/.next"
+}

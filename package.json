@@ -4,7 +4,7 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @freepost/db build && pnpm --filter @freepost/types build && pnpm --filter @freepost/api build && pnpm --filter @freepost/web build",
     "dev": "pnpm --parallel --filter @freepost/api --filter @freepost/web dev",
     "start": "pnpm -r start",
     "lint": "pnpm -r lint"
