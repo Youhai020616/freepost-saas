@@ -3,15 +3,10 @@
   "builds": [
     {
       "src": "apps/web/package.json",
-      "use": "@vercel/next",
-      "config": {
-        "projectSettings": {
-          "framework": "nextjs"
-        }
-      }
+      "use": "@vercel/next"
     }
   ],
-  "buildCommand": "pnpm install && pnpm build",
+  "buildCommand": "./build.sh",
   "installCommand": "pnpm install",
   "functions": {
     "apps/web/src/app/api/cron/publish/route.ts": {
@@ -26,6 +21,7 @@
   ],
   "env": {
     "DATABASE_PROVIDER": "postgresql",
-    "PRISMA_SKIP_GENERATE_WARNINGS": "true"
+    "AUTH_SECRET": "@auth_secret",
+    "DATABASE_URL": "@database_url"
   }
 }

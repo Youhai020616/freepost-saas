@@ -4,7 +4,7 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "build": "pnpm prisma:generate && pnpm -r build",
+    "build": "./build.sh",
     "dev": "pnpm --parallel --filter @freepost/api --filter @freepost/web dev",
     "start": "pnpm --filter @freepost/web start",
     "lint": "pnpm -r lint",
