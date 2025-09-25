@@ -38,6 +38,12 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.890.0
         version: 3.896.0
+      '@freepost/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@freepost/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@prisma/client':
         specifier: ^6.16.2
         version: 6.16.2(prisma@6.16.2(typescript@5.9.2))(typescript@5.9.2)

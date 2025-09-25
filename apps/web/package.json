@@ -21,6 +21,8 @@
     "@upstash/ratelimit": "^2.0.6",
     "@upstash/redis": "^1.35.3",
     "@vercel/postgres": "^0.10.0",
+    "@freepost/db": "workspace:*",
+    "@freepost/types": "workspace:*",
     "better-auth": "^1.3.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
