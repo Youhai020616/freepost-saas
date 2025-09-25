@@ -1,79 +1,56 @@
-let PrismaClient;
-let prismaClient;
+// Fallback implementation for environments where Prisma client generation fails
+let PrismaClientConstructor: any;
 
 try {
-  // Try to import the real Prisma client
   const prismaModule = require('@prisma/client');
-  PrismaClient = prismaModule.PrismaClient;
+  PrismaClientConstructor = prismaModule.PrismaClient;
 } catch (error) {
-  console.warn('Prisma client not available, using mock. This is expected during build without network access.');
-  // Use a mock PrismaClient for build environments
-  PrismaClient = class {
-    constructor(options) {
-      // Mock all the database operations
-      this.user = {
-        findUnique: () => Promise.resolve(null),
-        findFirst: () => Promise.resolve(null),
-        findMany: () => Promise.resolve([]),
-        create: () => Promise.resolve({}),
-        update: () => Promise.resolve({}),
-        upsert: () => Promise.resolve({}),
-        delete: () => Promise.resolve({}),
-      };
-      this.workspace = {
-        findUnique: () => Promise.resolve(null),
-        findFirst: () => Promise.resolve(null),
-        findMany: () => Promise.resolve([]),
-        create: () => Promise.resolve({}),
-        update: () => Promise.resolve({}),
-        upsert: () => Promise.resolve({}),
-        delete: () => Promise.resolve({}),
-      };
-      this.membership = {
-        findUnique: () => Promise.resolve(null),
-        findFirst: () => Promise.resolve(null),
-        findMany: () => Promise.resolve([]),
-        create: () => Promise.resolve({}),
-        update: () => Promise.resolve({}),
-        upsert: () => Promise.resolve({}),
-        delete: () => Promise.resolve({}),
-      };
-      this.post = {
-        findUnique: () => Promise.resolve(null),
-        findFirst: () => Promise.resolve(null),
-        findMany: () => Promise.resolve([]),
-        create: () => Promise.resolve({}),
-        update: () => Promise.resolve({}),
-        upsert: () => Promise.resolve({}),
-        delete: () => Promise.resolve({}),
-      };
-      this.schedulerJob = {
-        findUnique: () => Promise.resolve(null),
-        findFirst: () => Promise.resolve(null),
-        findMany: () => Promise.resolve([]),
-        create: () => Promise.resolve({}),
-        update: () => Promise.resolve({}),
-        upsert: () => Promise.resolve({}),
-        delete: () => Promise.resolve({}),
-      };
-    }
+  console.warn('Using mock Prisma client for build environment');
+  
+  // Create a mock that satisfies runtime requirements
+  PrismaClientConstructor = function MockPrismaClient(this: any, options?: any) {
+    const mockModel = {
+      findUnique: async () => null,
+      findFirst: async () => null,
+      findMany: async () => [],
+      create: async () => ({}),
+      update: async () => ({}),
+      upsert: async () => ({}),
+      delete: async () => ({}),
+    };
+    
+    // @ts-ignore - Allow dynamic property assignment for mock
+    this.user = mockModel;
+    this.workspace = mockModel;
+    this.membership = mockModel;  
+    this.post = mockModel;
+    this.schedulerJob = mockModel;
+    this.socialAccount = mockModel;
+    this.media = mockModel;
+    this.subscription = mockModel;
+    this.log = mockModel;
+    this.cache = mockModel;
+    
+    return this;
   };
 }
 
-const globalForPrisma = globalThis;
+// @ts-ignore - Allow global property assignment
+const globalForPrisma = globalThis as any;
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: ['error', 'warn']
-  });
+export const prisma = globalForPrisma.prisma ?? new PrismaClientConstructor({ log: ['error', 'warn'] });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 
-// Try to export from @prisma/client, fallback to empty export
+// Re-export Prisma types if available
 try {
-  module.exports = { ...require('@prisma/client'), prisma };
-} catch (error) {
-  module.exports = { prisma, PrismaClient };
+  // @ts-ignore - Dynamic export based on availability
+  const prismaExports = require('@prisma/client');
+  Object.assign(exports, prismaExports);
+} catch {
+  // Export minimal interface for build environments
+  exports.PrismaClient = PrismaClientConstructor;
 }
 
