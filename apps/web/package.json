@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "pnpm --filter @freepost/db prisma:generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:generate": "pnpm --filter @freepost/db prisma:generate",
+    "prisma:migrate": "pnpm --filter @freepost/db prisma:migrate",
+    "prisma:studio": "pnpm --filter @freepost/db prisma:studio"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.890.0",

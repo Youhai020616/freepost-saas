@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "cd apps/web && pnpm install --frozen-lockfile && pnpm --filter @freepost/db prisma:generate && pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs"
+}

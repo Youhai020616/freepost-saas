@@ -1,0 +1,19 @@
+[build]
+builder = "NIXPACKS"
+
+[[services]]
+name = "freepost-api"
+source = "."
+
+[services.build]
+builder = "NIXPACKS"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @freepost/db prisma:generate && pnpm --filter @freepost/db prisma:migrate:deploy && pnpm build --filter=@freepost/api"
+startCommand = "cd apps/api && pnpm start"
+
+[[services.variables]]
+name = "NODE_ENV"
+value = "production"
+
+[[services.variables]]
+name = "PORT"
+value = "3001"
