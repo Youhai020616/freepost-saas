@@ -1,0 +1,6 @@
+apps/api
+packages/db/prisma/dev.db*
+.env
+.env.local
+node_modules
+*.log
