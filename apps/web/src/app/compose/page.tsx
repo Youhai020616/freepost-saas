@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { 
-  Calendar, 
   Image, 
   Video, 
   Hash, 
@@ -12,7 +11,6 @@ import {
   Save, 
   Eye,
   Smile,
-  Link,
   BarChart3,
   Users,
   Zap
@@ -31,9 +29,7 @@ export default function ComposePage() {
   const [selectedPlatforms, setSelectedPlatforms] = useState(['twitter']);
   const [content, setContent] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
-  const [mediaFiles, setMediaFiles] = useState<string[]>([]);
   const [hashtags, setHashtags] = useState('');
-  const [location, setLocation] = useState('');
 
   const togglePlatform = (platformId: string) => {
     setSelectedPlatforms(prev => 

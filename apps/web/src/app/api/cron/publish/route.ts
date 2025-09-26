@@ -21,8 +21,9 @@ export async function POST() {
       // TODO: call provider adapters to publish. For now, mock publish.
       await prisma.schedulerJob.update({ where: { id: job.id }, data: { status: "DONE" } });
       await prisma.post.update({ where: { id: job.postId }, data: { status: "PUBLISHED", publishedAt: new Date() } });
-    } catch (e: any) {
-      await prisma.schedulerJob.update({ where: { id: job.id }, data: { status: "FAILED", lastError: String(e?.message || e) } });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      await prisma.schedulerJob.update({ where: { id: job.id }, data: { status: "FAILED", lastError: errorMessage } });
     }
   }
 

@@ -9,9 +9,7 @@ import {
   Edit, 
   Trash2, 
   Eye,
-  Filter,
   List,
-  Grid3X3,
   MoreHorizontal
 } from 'lucide-react';
 

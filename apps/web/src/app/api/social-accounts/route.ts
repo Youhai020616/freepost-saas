@@ -22,22 +22,22 @@ export async function POST(req: NextRequest) {
       },
     });
     return NextResponse.json({ data: acc }, { status: 201 });
-  } catch (e: any) {
-    const msg = String(e?.message || e);
-    const status = msg === "unauthorized" ? 401 : msg === "forbidden" ? 403 : 400;
-    return NextResponse.json({ error: msg }, { status });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    const status = message === "unauthorized" ? 401 : message === "forbidden" ? 403 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
 // GET /api/social-accounts
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const { workspaceId } = await requireSessionAndWorkspace();
     const list = await prisma.socialAccount.findMany({ where: { workspaceId }, orderBy: { createdAt: "desc" } });
     return NextResponse.json({ data: list });
-  } catch (e: any) {
-    const msg = String(e?.message || e);
-    const status = msg === "unauthorized" ? 401 : msg === "forbidden" ? 403 : 400;
-    return NextResponse.json({ error: msg }, { status });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    const status = message === "unauthorized" ? 401 : message === "forbidden" ? 403 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

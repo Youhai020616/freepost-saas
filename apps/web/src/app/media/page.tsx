@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { 
   Upload, 
   Search, 
-  Filter, 
   Grid3X3, 
   List, 
   Image, 
@@ -13,8 +12,6 @@ import {
   Trash2, 
   Edit, 
   Eye,
-  Calendar,
-  Tag,
   Folder,
   Plus,
   MoreHorizontal

@@ -3,16 +3,11 @@ import React, { useState } from 'react';
 import { 
   CreditCard, 
   Download, 
-  Calendar, 
   Check, 
   Star, 
-  Zap, 
   Users, 
   BarChart3, 
   Shield, 
-  Clock,
-  ArrowRight,
-  AlertCircle,
   Plus
 } from 'lucide-react';
 
@@ -130,7 +125,7 @@ export default function BillingPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Current Plan</h2>
-              <p className="text-slate-600 dark:text-slate-400">You're currently on the {currentPlan?.name} plan</p>
+              <p className="text-slate-600 dark:text-slate-400">You&apos;re currently on the {currentPlan?.name} plan</p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">

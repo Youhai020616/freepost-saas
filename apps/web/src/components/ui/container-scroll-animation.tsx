@@ -54,7 +54,11 @@ export const ContainerScroll = ({
   );
 };
 
-export const Header = ({ translate, titleComponent }: any) => {
+export const Header = ({ translate, titleComponent }: { 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  translate: any; // MotionValue from framer-motion
+  titleComponent: React.ReactNode; 
+}) => {
   return (
     <motion.div
       style={{

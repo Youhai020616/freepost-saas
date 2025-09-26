@@ -188,7 +188,7 @@ export default function AboutUsSection() {
         </motion.div>
 
         <motion.p className="text-center max-w-2xl mx-auto mb-16 text-muted-foreground text-lg" variants={itemVariants}>
-          We're passionate about empowering creators, businesses, and agencies to build meaningful connections through social media.
+          We&apos;re passionate about empowering creators, businesses, and agencies to build meaningful connections through social media.
           Our platform combines cutting-edge technology with intuitive design to make social media management effortless and effective.
         </motion.p>
 

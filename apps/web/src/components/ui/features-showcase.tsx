@@ -74,7 +74,7 @@ export function FeaturesShowcase() {
             viewport={{ once: true }}
             className='text-lg text-muted-foreground max-w-2xl mx-auto'
           >
-            Discover how Freepost's comprehensive suite of tools can transform your social media strategy
+            Discover how Freepost&apos;s comprehensive suite of tools can transform your social media strategy
           </motion.p>
         </div>
 

@@ -32,7 +32,7 @@ export async function ensureOnboarded() {
         members: { create: [{ userId: user.id, role: "owner" }] },
       },
     });
-    membership = { userId: user.id, workspaceId: ws.id, role: "owner" } as any;
+    membership = { userId: user.id, workspaceId: ws.id, role: "owner" };
   }
 
   if (!slug) {

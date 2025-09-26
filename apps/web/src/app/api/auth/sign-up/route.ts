@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
 
     const ctx = await ensureOnboarded();
     return NextResponse.json({ success: true, slug: ctx?.slug });
-  } catch (e: any) {
-    return NextResponse.json({ error: String(e?.message || e) }, { status: 400 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

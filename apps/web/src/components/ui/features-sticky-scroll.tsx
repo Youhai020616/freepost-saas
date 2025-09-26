@@ -2,6 +2,7 @@
 import { ReactLenis } from 'lenis/react';
 import React, { forwardRef } from 'react';
 import { Calendar, BarChart3, Users, Zap, Shield, Globe, ArrowLeft, Home } from 'lucide-react';
+import Link from 'next/link';
 
 const features = [
   {
@@ -61,15 +62,15 @@ const FeaturesSticky = forwardRef<HTMLElement>((props, ref) => {
         {/* Navigation Bar */}
         <nav className='fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border'>
           <div className='max-w-6xl mx-auto px-4 py-4 flex items-center justify-between'>
-            <a href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
+            <Link href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
               <ArrowLeft className='h-5 w-5' />
               <span className='font-medium'>Back to Home</span>
-            </a>
+            </Link>
             <div className='flex items-center gap-4'>
-              <a href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
+              <Link href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
                 <Home className='h-5 w-5' />
                 <span className='font-medium'>freepost</span>
-              </a>
+              </Link>
             </div>
           </div>
         </nav>
@@ -93,7 +94,7 @@ const FeaturesSticky = forwardRef<HTMLElement>((props, ref) => {
                 </span>
               </h1>
               <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-                Discover how Freepost's comprehensive suite of tools can transform your social media strategy
+                Discover how Freepost&apos;s comprehensive suite of tools can transform your social media strategy
               </p>
             </div>
           </section>

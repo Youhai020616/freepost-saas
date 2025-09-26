@@ -2,6 +2,7 @@
 import { ArrowLeft, Home, Calendar, Clock, ArrowRight, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const blogPosts = [
   {
@@ -78,15 +79,15 @@ export default function BlogPage() {
       {/* Navigation Bar */}
       <nav className='fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border'>
         <div className='max-w-6xl mx-auto px-4 py-4 flex items-center justify-between'>
-          <a href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
+          <Link href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
             <ArrowLeft className='h-5 w-5' />
             <span className='font-medium'>Back to Home</span>
-          </a>
+          </Link>
           <div className='flex items-center gap-4'>
-            <a href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
+            <Link href="/" className='flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors'>
               <Home className='h-5 w-5' />
               <span className='font-medium'>freepost</span>
-            </a>
+            </Link>
           </div>
         </div>
       </nav>

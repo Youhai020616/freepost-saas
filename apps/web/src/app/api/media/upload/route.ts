@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
         workspaceId,
         url,
         mime: (file as File).type || "application/octet-stream",
-        size: (file as any).size ?? 0,
+        size: file.size,
       },
     });
     return NextResponse.json({ data: media }, { status: 201 });
-  } catch (e: any) {
-    const msg = String(e?.message || e);
-    const status = msg === "unauthorized" ? 401 : msg === "forbidden" ? 403 : 400;
-    return NextResponse.json({ error: msg }, { status });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    const status = message === "unauthorized" ? 401 : message === "forbidden" ? 403 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

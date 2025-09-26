@@ -7,7 +7,7 @@ export async function listPosts(slug: string) {
   return json.data
 }
 
-export async function createPost(slug: string, payload: any) {
+export async function createPost(slug: string, payload: object) {
   const res = await apiFetch(`/w/${slug}/posts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
   if (!res.ok) throw new Error(await res.text())
   return (await res.json()).data
@@ -19,7 +19,7 @@ export async function getPost(slug: string, id: string) {
   return (await res.json()).data
 }
 
-export async function updatePost(slug: string, id: string, patch: any) {
+export async function updatePost(slug: string, id: string, patch: object) {
   const res = await apiFetch(`/w/${slug}/posts/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
   if (!res.ok) throw new Error(await res.text())
   return (await res.json()).data
@@ -37,7 +37,7 @@ export async function publishPost(slug: string, id: string) {
   return (await res.json()).success
 }
 
-export async function schedulePost(slug: string, payload: any) {
+export async function schedulePost(slug: string, payload: object) {
   const res = await apiFetch(`/w/${slug}/posts/schedule`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
   if (!res.ok) throw new Error(await res.text())
   return (await res.json()).data
@@ -49,7 +49,7 @@ export async function listWorkspaces(slug: string) {
   return (await res.json()).data
 }
 
-export async function createWorkspace(slug: string, payload: any) {
+export async function createWorkspace(slug: string, payload: object) {
   const res = await apiFetch(`/w/${slug}/workspaces`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
   if (!res.ok) throw new Error(await res.text())
   return (await res.json()).data
