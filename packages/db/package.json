@@ -2,9 +2,15 @@
   "name": "@freepost/db",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prisma:generate": "prisma generate",
