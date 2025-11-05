@@ -124,7 +124,6 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
                   )}
                 </li>
                 <li><a href="/about" className="hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">About</a></li>
-                <li><a href="/dashboard" className="hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">Dashboard</a></li>
                 <li className="relative">
                   <button onClick={() => toggleDropdown('desktop-pricing')} className="flex items-center hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">
                     Pricing<ChevronDown className={`h-4 w-4 ml-1 transition-transform ${openDropdown === 'desktop-pricing' ? 'rotate-180' : ''}`} />
@@ -175,7 +174,6 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
                       <li><a href="/resources" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Learning Center</a></li>
                   </ul>)}</li>
                   <li><a href="/about" className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">About</a></li>
-                  <li><a href="/dashboard" className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">Dashboard</a></li>
                   <li><button onClick={() => toggleDropdown('mobile-pricing')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">
                       Pricing<ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === 'mobile-pricing' ? 'rotate-180' : ''}`} />
                   </button>

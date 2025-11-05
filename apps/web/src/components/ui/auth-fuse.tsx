@@ -194,7 +194,6 @@ function SignInForm() {
     if (!res.ok) throw new Error(json.error || "Sign in failed");
     if (json.slug) window.location.href = '/dashboard';
   }
-  const handleSignIn = (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); console.log("UI: Sign In form submitted"); };
   return (
     <form action={async (fd) => { setError(null); setLoading(true); try { await doSignIn(fd); } catch (e) { console.error(e); setError(String((e as Error).message)); } finally { setLoading(false); } }} autoComplete="on" className="flex flex-col gap-8">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -204,7 +203,14 @@ function SignInForm() {
       <div className="grid gap-4">
         <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" placeholder="m@example.com" required autoComplete="email" /></div>
         <PasswordInput name="password" label="Password" required autoComplete="current-password" placeholder="Password" />
-        <Button type="submit" variant="outline" className="mt-2" disabled={loading}>{loading ? "Signing in..." : "Sign In"}</Button>
+        <Button
+          type="submit"
+          variant="outline"
+          className="mt-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-md hover:shadow-primary/20 active:scale-[0.98]"
+          disabled={loading}
+        >
+          {loading ? "Signing in..." : "Sign In"}
+        </Button>
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     </form>
@@ -227,7 +233,6 @@ function SignUpForm() {
     if (!res.ok) throw new Error(json.error || "Sign up failed");
     if (json.slug) window.location.href = '/dashboard';
   }
-  const handleSignUp = (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); console.log("UI: Sign Up form submitted"); };
   return (
     <form action={async (fd) => { setError(null); setLoading(true); try { await doSignUp(fd); } catch (e) { console.error(e); setError(String((e as Error).message)); } finally { setLoading(false); } }} autoComplete="on" className="flex flex-col gap-8">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -238,7 +243,14 @@ function SignUpForm() {
         <div className="grid gap-1"><Label htmlFor="name">Full Name</Label><Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" /></div>
         <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" placeholder="m@example.com" required autoComplete="email" /></div>
         <PasswordInput name="password" label="Password" required autoComplete="new-password" placeholder="Password"/>
-        <Button type="submit" variant="outline" className="mt-2" disabled={loading}>{loading ? "Creating..." : "Sign Up"}</Button>
+        <Button
+          type="submit"
+          variant="outline"
+          className="mt-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-md hover:shadow-primary/20 active:scale-[0.98]"
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Sign Up"}
+        </Button>
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     </form>
@@ -258,7 +270,12 @@ function AuthFormContainer({ isSignIn, onToggle }: { isSignIn: boolean; onToggle
             <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                 <span className="relative z-10 bg-background px-2 text-muted-foreground">Or continue with</span>
             </div>
-            <Button variant="outline" type="button" onClick={() => console.log("UI: Google button clicked")}>
+            <Button
+                variant="outline"
+                type="button"
+                className="transition-all duration-200 hover:scale-[1.02] hover:shadow-md hover:shadow-primary/20 active:scale-[0.98]"
+                onClick={() => console.log("UI: Google button clicked")}
+            >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="mr-2 h-4 w-4"><path d="M12 2a10 10 0 100 20 9.75 9.75 0 006.85-2.66l-2.77-2.16A6.37 6.37 0 0112 18.37a6.37 6.37 0 110-12.74c1.62 0 3.09.61 4.22 1.61l2.1-2.1A9.76 9.76 0 0012 2z"/></svg>
                 Continue with Google
             </Button>

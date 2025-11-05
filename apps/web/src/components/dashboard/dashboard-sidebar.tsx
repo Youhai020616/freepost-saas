@@ -212,13 +212,14 @@ const ALL_PLATFORMS: SocialPlatformDefinition[] = [
 const DEFAULT_VISIBLE_PLATFORMS = ['twitter', 'facebook', 'instagram', 'linkedin', 'youtube'];
 
 interface DashboardSidebarProps {
-  defaultCollapsed?: boolean;
+  isCollapsed: boolean;
+  onToggleCollapse: (collapsed: boolean) => void;
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
-  defaultCollapsed = false
+  isCollapsed,
+  onToggleCollapse
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // 初始化社交账户数据（模拟数据，实际应从数据库获取）
@@ -276,7 +277,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     >
       {/* Toggle Button */}
       <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={() => onToggleCollapse(!isCollapsed)}
         className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center hover:bg-accent transition-colors"
       >
         {isCollapsed ? (
