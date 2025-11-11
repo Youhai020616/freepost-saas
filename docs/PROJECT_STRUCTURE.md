@@ -334,9 +334,6 @@ freepost-saas/
 ├── pnpm-workspace.yaml        # pnpm workspace 配置
 ├── tsconfig.json              # 根 TypeScript 配置
 ├── vercel.json                # Vercel 部署配置
-├── docker-compose.yml         # Docker 编排
-├── Dockerfile                 # Docker 镜像
-├── railway.toml               # Railway 部署配置
 └── .env.example               # 环境变量模板
 ```
 
@@ -385,6 +382,6 @@ APP_URL="http://localhost:3000"
 ## 📖 相关文档
 
 - [CLAUDE.md](../CLAUDE.md) - AI 助手指南
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - 部署文档
 - [README.md](../README.md) - 项目说明
+- [vercel.json](../vercel.json) - Vercel 部署配置
 

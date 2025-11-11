@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     },
   },
   transpilePackages: ["@freepost/db", "@freepost/types"],
-  output: 'standalone', // For Docker deployments
+  output: 'standalone', // For optimized Vercel deployments
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "pbs.twimg.com" },

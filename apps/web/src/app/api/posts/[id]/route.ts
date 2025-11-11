@@ -29,6 +29,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!existing || existing.workspaceId !== workspaceId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+
+    // Validate scheduledTime if provided
+    if (body.scheduledTime !== undefined) {
+      const scheduledDate = new Date(body.scheduledTime);
+      if (isNaN(scheduledDate.getTime())) {
+        return NextResponse.json({ error: "Invalid scheduledTime format" }, { status: 400 });
+      }
+      // Ensure scheduledTime is in the future (optional validation)
+      if (scheduledDate < new Date()) {
+        return NextResponse.json({ error: "scheduledTime must be in the future" }, { status: 400 });
+      }
+    }
+
     const post = await prisma.post.update({ where: { id }, data: body });
     return NextResponse.json({ data: post });
   } catch (e: unknown) {
