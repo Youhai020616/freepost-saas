@@ -196,7 +196,7 @@ export default function ScheduleContent() {
                 </Button>
               </div>
               <Button
-                variant="outline"
+                variant="neutral"
                 size="sm"
                 onClick={() => setCurrentDate(new Date())}
               >

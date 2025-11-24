@@ -59,7 +59,7 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
       setIsVideoPaused(true);
     }
   };
-  
+
   const handleResumeVideo = () => {
     if (videoRef.current) {
       videoRef.current.play();
@@ -97,42 +97,42 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
             <nav className="hidden lg:flex text-muted-foreground font-medium">
               <ul className="flex items-center space-x-2">
                 <li className="relative">
-                  <button onClick={() => toggleDropdown('desktop-features')} className="flex items-center hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">
-                    Features<ChevronDown className={`h-4 w-4 ml-1 transition-transform ${openDropdown === 'desktop-features' ? 'rotate-180' : ''}`} />
+                  <button onClick={() => toggleDropdown('desktop-features')} className="flex items-center hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 px-3 py-2 text-sm transition-all duration-200 rounded-lg group">
+                    Features<ChevronDown className={`h-4 w-4 ml-1 transition-transform duration-200 ${openDropdown === 'desktop-features' ? 'rotate-180' : 'group-hover:translate-y-0.5'}`} />
                   </button>
                   {openDropdown === 'desktop-features' && (
-                    <ul className="absolute top-full left-0 mt-2 p-2 bg-card border border-border shadow-lg rounded-xl z-20 w-56">
-                      <li><a href="/features" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">All Features</a></li>
-                      <li><a href="/features#scheduling" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Smart Scheduling</a></li>
-                      <li><a href="/features#analytics" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Advanced Analytics</a></li>
-                      <li><a href="/features#collaboration" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Team Collaboration</a></li>
-                      <li><a href="/features#bulk" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Bulk Actions</a></li>
-                      <li><a href="/features#security" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Security & Reliability</a></li>
-                      <li><a href="/features#platforms" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Multi-Platform</a></li>
+                    <ul className="absolute top-full left-0 mt-2 p-2 bg-card/95 backdrop-blur-md border border-border shadow-xl rounded-xl z-50 min-w-[240px] whitespace-nowrap">
+                      <li><a href="/features" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">All Features</a></li>
+                      <li><a href="/features#scheduling" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Smart Scheduling</a></li>
+                      <li><a href="/features#analytics" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Advanced Analytics</a></li>
+                      <li><a href="/features#collaboration" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Team Collaboration</a></li>
+                      <li><a href="/features#bulk" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Bulk Actions</a></li>
+                      <li><a href="/features#security" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Security & Reliability</a></li>
+                      <li><a href="/features#platforms" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Multi-Platform</a></li>
                     </ul>
                   )}
                 </li>
                 <li className="relative">
-                  <button onClick={() => toggleDropdown('desktop-resources')} className="flex items-center hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">
-                    Resources<ChevronDown className={`h-4 w-4 ml-1 transition-transform ${openDropdown === 'desktop-resources' ? 'rotate-180' : ''}`} />
+                  <button onClick={() => toggleDropdown('desktop-resources')} className="flex items-center hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 px-3 py-2 text-sm transition-all duration-200 rounded-lg group">
+                    Resources<ChevronDown className={`h-4 w-4 ml-1 transition-transform duration-200 ${openDropdown === 'desktop-resources' ? 'rotate-180' : 'group-hover:translate-y-0.5'}`} />
                   </button>
                   {openDropdown === 'desktop-resources' && (
-                    <ul className="absolute top-full left-0 mt-2 p-2 bg-card border border-border shadow-lg rounded-xl z-20 w-48">
-                      <li><a href="/blog" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Blog</a></li>
-                      <li><a href="/resources" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Learning Center</a></li>
+                    <ul className="absolute top-full left-0 mt-2 p-2 bg-card/95 backdrop-blur-md border border-border shadow-xl rounded-xl z-50 min-w-[200px] whitespace-nowrap">
+                      <li><a href="/blog" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Blog</a></li>
+                      <li><a href="/resources" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Learning Center</a></li>
                     </ul>
                   )}
                 </li>
-                <li><a href="/about" className="hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">About</a></li>
+                <li><a href="/about" className="block hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 px-3 py-2 text-sm transition-all duration-200 rounded-lg">About</a></li>
                 <li className="relative">
-                  <button onClick={() => toggleDropdown('desktop-pricing')} className="flex items-center hover:text-foreground px-3 py-2 text-sm transition-colors rounded-lg">
-                    Pricing<ChevronDown className={`h-4 w-4 ml-1 transition-transform ${openDropdown === 'desktop-pricing' ? 'rotate-180' : ''}`} />
+                  <button onClick={() => toggleDropdown('desktop-pricing')} className="flex items-center hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 px-3 py-2 text-sm transition-all duration-200 rounded-lg group">
+                    Pricing<ChevronDown className={`h-4 w-4 ml-1 transition-transform duration-200 ${openDropdown === 'desktop-pricing' ? 'rotate-180' : 'group-hover:translate-y-0.5'}`} />
                   </button>
                   {openDropdown === 'desktop-pricing' && (
-                    <ul className="absolute top-full left-0 mt-2 p-2 bg-card border border-border shadow-lg rounded-xl z-20 w-48">
-                      <li><a href="#free" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Free Plan</a></li>
-                      <li><a href="#pro" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Pro Plan</a></li>
-                      <li><a href="#team" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg">Team Plan</a></li>
+                    <ul className="absolute top-full left-0 mt-2 p-2 bg-card/95 backdrop-blur-md border border-border shadow-xl rounded-xl z-50 min-w-[160px] whitespace-nowrap">
+                      <li><a href="#free" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Free Plan</a></li>
+                      <li><a href="#pro" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Pro Plan</a></li>
+                      <li><a href="#team" className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:translate-x-1 rounded-lg transition-all duration-200">Team Plan</a></li>
                     </ul>
                   )}
                 </li>
@@ -153,34 +153,34 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
                 <Menu className="h-6 w-6" />
               </button>
               {isMobileMenuOpen && (
-                <ul className="absolute top-full right-0 mt-2 p-2 shadow-lg bg-card border border-border rounded-xl w-56 z-30">
-                  <li><button onClick={() => toggleDropdown('mobile-features')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">
+                <ul className="absolute top-full right-0 mt-2 p-2 shadow-xl bg-card/95 backdrop-blur-md border border-border rounded-xl w-56 z-30">
+                  <li><button onClick={() => toggleDropdown('mobile-features')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg">
                       Features<ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === 'mobile-features' ? 'rotate-180' : ''}`} />
                   </button>
                   {openDropdown === 'mobile-features' && (<ul className="ml-4 mt-1 border-l border-border pl-3">
-                      <li><a href="/features" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">All Features</a></li>
-                      <li><a href="/features#scheduling" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Smart Scheduling</a></li>
-                      <li><a href="/features#analytics" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Advanced Analytics</a></li>
-                      <li><a href="/features#collaboration" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Team Collaboration</a></li>
-                      <li><a href="/features#bulk" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Bulk Actions</a></li>
-                      <li><a href="/features#security" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Security & Reliability</a></li>
-                      <li><a href="/features#platforms" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Multi-Platform</a></li>
+                      <li><a href="/features" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">All Features</a></li>
+                      <li><a href="/features#scheduling" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Smart Scheduling</a></li>
+                      <li><a href="/features#analytics" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Advanced Analytics</a></li>
+                      <li><a href="/features#collaboration" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Team Collaboration</a></li>
+                      <li><a href="/features#bulk" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Bulk Actions</a></li>
+                      <li><a href="/features#security" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Security & Reliability</a></li>
+                      <li><a href="/features#platforms" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Multi-Platform</a></li>
                   </ul>)}</li>
-                  <li><button onClick={() => toggleDropdown('mobile-resources')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">
+                  <li><button onClick={() => toggleDropdown('mobile-resources')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg">
                       Resources<ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === 'mobile-resources' ? 'rotate-180' : ''}`} />
                   </button>
                   {openDropdown === 'mobile-resources' && (<ul className="ml-4 mt-1 border-l border-border pl-3">
-                      <li><a href="/blog" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Blog</a></li>
-                      <li><a href="/resources" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Learning Center</a></li>
+                      <li><a href="/blog" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Blog</a></li>
+                      <li><a href="/resources" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Learning Center</a></li>
                   </ul>)}</li>
-                  <li><a href="/about" className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">About</a></li>
-                  <li><button onClick={() => toggleDropdown('mobile-pricing')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg">
+                  <li><a href="/about" className="block px-3 py-2 text-sm text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg">About</a></li>
+                  <li><button onClick={() => toggleDropdown('mobile-pricing')} className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg">
                       Pricing<ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === 'mobile-pricing' ? 'rotate-180' : ''}`} />
                   </button>
                   {openDropdown === 'mobile-pricing' && (<ul className="ml-4 mt-1 border-l border-border pl-3">
-                      <li><a href="#free" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Free Plan</a></li>
-                      <li><a href="#pro" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Pro Plan</a></li>
-                      <li><a href="#team" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg">Team Plan</a></li>
+                      <li><a href="#free" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Free Plan</a></li>
+                      <li><a href="#pro" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Pro Plan</a></li>
+                      <li><a href="#team" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Team Plan</a></li>
                   </ul>)}</li>
                   <li className="border-t border-border mt-2 pt-2 space-y-2">
                     <a href="/sign-in" className="block w-full text-center px-3 py-2 text-sm bg-black text-white hover:bg-gray-800 rounded-lg">Sign In</a>
@@ -202,12 +202,12 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
             <div className="mt-8 flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-                <input 
-                  type="email" 
-                  placeholder={emailPlaceholder} 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  className="w-full max-w-xs bg-muted border-border text-foreground placeholder-muted-foreground font-medium pl-10 pr-4 py-2 text-sm sm:pl-11 sm:py-3 sm:text-base rounded-full focus:outline-none focus:ring-2 focus:ring-ring" 
+                <input
+                  type="email"
+                  placeholder={emailPlaceholder}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full max-w-xs bg-muted border-border text-foreground placeholder-muted-foreground font-medium pl-10 pr-4 py-2 text-sm sm:pl-11 sm:py-3 sm:text-base rounded-full focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
               <button
@@ -222,30 +222,30 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
 
         {/* --- Media Header --- */}
         <header className="relative w-full aspect-video rounded-3xl overflow-hidden">
-          <img 
-            src={backgroundImage} 
-            alt="Social media management dashboard" 
-            className={`w-full h-full absolute inset-0 object-cover transition-opacity duration-500 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`} 
+          <img
+            src={backgroundImage}
+            alt="Social media management dashboard"
+            className={`w-full h-full absolute inset-0 object-cover transition-opacity duration-500 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`}
           />
-          <video 
-            ref={videoRef} 
-            src={videoUrl} 
-            className={`w-full h-full absolute inset-0 object-cover transition-opacity duration-500 ${isVideoPlaying ? 'opacity-100' : 'opacity-0'}`} 
-            onEnded={handleVideoEnded} 
-            playsInline 
-            muted 
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className={`w-full h-full absolute inset-0 object-cover transition-opacity duration-500 ${isVideoPlaying ? 'opacity-100' : 'opacity-0'}`}
+            onEnded={handleVideoEnded}
+            playsInline
+            muted
           />
           <div className="absolute bottom-5 right-5 z-10">
             {!isVideoPlaying ? (
-              <button 
-                onClick={handlePlayVideo} 
+              <button
+                onClick={handlePlayVideo}
                 className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-all duration-200 shadow-lg"
               >
                 <Play className="h-7 w-7 text-white fill-white ml-1" />
               </button>
             ) : (
-              <button 
-                onClick={isVideoPaused ? handleResumeVideo : handlePauseVideo} 
+              <button
+                onClick={isVideoPaused ? handleResumeVideo : handlePauseVideo}
                 className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-all duration-200 shadow-lg"
               >
                 {isVideoPaused ? <Play className="h-7 w-7 text-white fill-white ml-1" /> : <Pause className="h-7 w-7 text-white fill-white" />}

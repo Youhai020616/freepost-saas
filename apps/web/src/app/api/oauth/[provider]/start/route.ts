@@ -1,33 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSessionAndWorkspace } from "@/lib/guards";
-import { createTwitterAuthUrl, persistTwitterState } from "@/lib/twitter";
+import { createTwitterAuthUrl } from "@/lib/twitter";
+import { prisma } from "@/lib/db";
+import { validateParams, validateQuery } from "@/lib/validation";
+import { oauthSchemas } from "@/lib/validation/schemas";
+import { logger } from "@/lib/logger";
+import { handleApiError, errors } from "@/lib/errors";
+import { rateLimit } from "@/lib/rate-limit";
 
-// GET /api/oauth/:provider/start (call via /api/w/:slug/oauth/:provider/start)
-export async function GET(req: NextRequest, { params }: { params: { provider: string } }) {
-  const provider = params.provider;
+/**
+ * GET /api/oauth/:provider/start
+ * Initiate OAuth flow for social media provider
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ provider: string }> }
+) {
   try {
-    const { userId, slug } = await requireSessionAndWorkspace();
+    // Rate limiting (3 requests per minute for OAuth)
+    const identifier = req.headers.get('x-forwarded-for') || 'anonymous';
+    const { success, remaining } = await rateLimit(identifier, 'oauth');
+
+    if (!success) {
+      logger.warn('Rate limit exceeded for OAuth start', { identifier });
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'X-RateLimit-Remaining': remaining.toString() }
+        }
+      );
+    }
+
+    // Validate provider parameter
+    const { provider } = validateParams(await params, oauthSchemas.params);
+
+    // Validate query parameters
     const url = new URL(req.url);
     const returnTo = url.searchParams.get("return_to") || undefined;
 
+    // Require authenticated user and workspace
+    const { userId, workspaceId } = await requireSessionAndWorkspace();
+
+    logger.info('OAuth flow started', { provider, userId, workspaceId });
+
+    // Get workspace to obtain slug
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { slug: true },
+    });
+
+    if (!workspace) {
+      throw errors.notFound('Workspace', workspaceId);
+    }
+
+    // Handle Twitter OAuth
     if (provider === 'twitter') {
       const base = `${url.protocol}//${url.host}`;
-      const { state, authUrl } = await createTwitterAuthUrl({
-        slug,
+      const { authUrl } = await createTwitterAuthUrl({
+        slug: workspace.slug,
         userId,
         returnTo,
         redirectUri: `${base}/api/oauth/twitter/callback`,
       });
-      // persistTwitterState 已在 createTwitterAuthUrl 内部完成
+
+      logger.info('Redirecting to Twitter OAuth', { userId, workspaceId });
       return NextResponse.redirect(authUrl, { status: 302 });
     }
 
-    // Fallback: other providers still mock redirect for now
-    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    const base = `${url.protocol}//${url.host}`;
-    const callback = `${base}/api/oauth/${encodeURIComponent(provider)}/callback?code=mock-code&state=${encodeURIComponent(state)}`;
-    return NextResponse.redirect(callback, { status: 302 });
-  } catch (e: unknown) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 400 });
+    // Unsupported provider
+    logger.warn('Unsupported OAuth provider', { provider });
+    throw errors.badRequest(
+      `OAuth provider '${provider}' is not yet implemented. Supported: twitter`,
+      { provider, supported: ['twitter'] }
+    );
+  } catch (error) {
+    logger.error('OAuth start failed', { error });
+    return handleApiError(error);
   }
 }

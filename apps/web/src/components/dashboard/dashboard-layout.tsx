@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardNavbar } from './dashboard-navbar';
 import { DashboardSidebar } from './dashboard-sidebar';
 import { cn } from '@/lib/utils';
@@ -12,14 +12,18 @@ interface DashboardLayoutProps {
 const SIDEBAR_STORAGE_KEY = 'dashboard-sidebar-collapsed';
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  // 从 localStorage 读取初始状态，默认为展开（false）
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-      return stored === 'true';
+  // 初始状态始终为 false，避免 hydration 不匹配
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // 客户端挂载后读取 localStorage
+  useEffect(() => {
+    setIsClient(true);
+    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    if (stored === 'true') {
+      setIsSidebarCollapsed(true);
     }
-    return false;
-  });
+  }, []);
 
   // 当侧边栏状态改变时，保存到 localStorage
   const handleToggleCollapse = (collapsed: boolean) => {

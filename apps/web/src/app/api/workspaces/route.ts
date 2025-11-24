@@ -2,20 +2,57 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { handleApiError, errors } from "@/lib/errors";
+import { validateRequest } from "@/lib/validation";
+import { workspaceSchemas } from "@/lib/validation/schemas";
+import { logger } from "@/lib/logger";
 
 // GET /api/workspaces - list workspaces for current user
 export async function GET() {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    if (!session) {
+      throw errors.unauthorized();
+    }
+
+    logger.info('Fetching workspaces', { userId: session.user.id });
+
+    // Optimized query - only fetch needed fields
     const memberships = await prisma.membership.findMany({
       where: { userId: session.user.id },
-      include: { workspace: true } as any,
+      select: {
+        workspace: {
+          select: {
+            id: true,
+            slug: true,
+            plan: true,
+            ownerId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        role: true,
+      },
+      orderBy: {
+        workspace: {
+          createdAt: 'desc',
+        },
+      },
     });
-    return NextResponse.json({ data: memberships.map((m: any) => m.workspace) });
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ error: message }, { status: 400 });
+
+    const workspaces = memberships.map((m) => ({
+      ...m.workspace,
+      userRole: m.role,
+    }));
+
+    logger.info('Workspaces fetched', {
+      userId: session.user.id,
+      count: workspaces.length
+    });
+
+    return NextResponse.json({ data: workspaces });
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
@@ -23,22 +60,53 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    const body = await req.json();
-    const { slug, plan } = body ?? {};
-    if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
+    if (!session) {
+      throw errors.unauthorized();
+    }
 
-    const ws = await prisma.workspace.create({
+    // Validate request body with Zod schema
+    const data = await validateRequest(req, workspaceSchemas.create);
+
+    logger.info('Creating workspace', {
+      userId: session.user.id,
+      slug: data.slug
+    });
+
+    // Check if slug already exists
+    const existing = await prisma.workspace.findUnique({
+      where: { slug: data.slug }
+    });
+
+    if (existing) {
+      throw errors.conflict(
+        'A workspace with this slug already exists',
+        { slug: data.slug }
+      );
+    }
+
+    // Create workspace with membership in a transaction
+    const workspace = await prisma.workspace.create({
       data: {
-        slug,
+        slug: data.slug,
         ownerId: session.user.id,
-        plan: plan ?? "free",
-        members: { create: [{ userId: session.user.id, role: "owner" }] },
+        plan: "free",
+        members: {
+          create: [{
+            userId: session.user.id,
+            role: "owner"
+          }]
+        },
       },
     });
-    return NextResponse.json({ data: ws }, { status: 201 });
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ error: message }, { status: 400 });
+
+    logger.info('Workspace created successfully', {
+      workspaceId: workspace.id,
+      slug: workspace.slug,
+      ownerId: session.user.id
+    });
+
+    return NextResponse.json({ data: workspace }, { status: 201 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

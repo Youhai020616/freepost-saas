@@ -92,13 +92,21 @@ freepost-saas/
    pnpm dev
    ```
 
-   The application will be available at `http://localhost:3000`
+   The application will be available at:
+   - 🌐 **Web**: http://localhost:3000
+   - 🔌 **API**: http://localhost:8787
+
+   > 💡 **遇到端口占用？** 查看 [快速启动指南](./QUICKSTART.md) 或运行 `pnpm cleanup`
 
 ## 📚 Available Scripts
 
 ```bash
 # Development
-pnpm dev          # Start all apps in development mode
+pnpm dev          # 智能启动开发服务器（推荐）
+pnpm dev:clean    # 清理端口后启动
+pnpm dev:web      # 仅启动 Web 应用
+pnpm dev:api      # 仅启动 API 服务
+pnpm cleanup      # 清理占用的端口
 pnpm build        # Build all apps for production
 pnpm start        # Start production builds
 

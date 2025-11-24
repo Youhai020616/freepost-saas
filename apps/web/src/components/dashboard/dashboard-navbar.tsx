@@ -2,10 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Menu, Sun, Moon, Bell, Settings, User, LogOut, Search, CreditCard, Home, Calendar, FileText, Image, BarChart3 } from 'lucide-react';
+import { Menu, Sun, Moon, Bell, Settings, User, LogOut, Search, CreditCard, Home, Calendar, FileText, Image as ImageIcon, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface DashboardNavbarProps {
   brandName?: string;
@@ -19,7 +28,6 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   userAvatar,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -45,7 +53,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/compose', label: 'Compose', icon: FileText },
     { href: '/schedule', label: 'Schedule', icon: Calendar },
-    { href: '/media', label: 'Media', icon: Image },
+    { href: '/media', label: 'Media', icon: ImageIcon },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
@@ -100,54 +108,57 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             <ThemeToggleButton />
 
             {/* User Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-muted transition-colors"
-              >
-                {userAvatar ? (
-                  <img src={userAvatar} alt={userName} className="w-8 h-8 rounded-full object-cover" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
-                  </div>
-                )}
-              </button>
-
-              {/* User Dropdown */}
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-xl shadow-lg p-2 z-50">
-                  <div className="px-3 py-2 border-b border-border mb-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-muted transition-colors">
+                  {userAvatar ? (
+                    <Image 
+                      src={userAvatar} 
+                      alt={userName} 
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full object-cover" 
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                      <User className="h-4 w-4 text-primary" />
+                    </div>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div>
                     <p className="text-sm font-medium text-foreground">{userName}</p>
                     <p className="text-xs text-muted-foreground">user@example.com</p>
                   </div>
-                  <Link
-                    href="/settings"
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                  >
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />
                     Settings
                   </Link>
-                  <Link
-                    href="/billing"
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                  >
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/billing" className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4" />
                     Billing
                   </Link>
-                  <button
-                    onClick={() => {
-                      // TODO: Implement logout
-                      console.log('Logout clicked');
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors mt-2 border-t border-border pt-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    // TODO: Implement logout
+                    console.log('Logout clicked');
+                  }}
+                  className="text-red-600 dark:text-red-400"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Mobile Menu Button */}

@@ -1,34 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DndContext, DragEndEvent, useDraggable, useDroppable, DragOverlay, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragStartEvent, closestCenter, UniqueIdentifier } from '@dnd-kit/core';
+import { useQuery } from '@tanstack/react-query';
 import { useUpdatePostSchedule } from '@/hooks/use-update-post-schedule';
 import {
   Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
   Plus,
   Clock,
   Edit,
   Trash2,
   Eye,
   List,
-  Copy,
-  MoreVertical,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { WeekView } from '@/components/schedule/week-view';
-import { DraggablePostCard } from '@/components/schedule/draggable-post-card';
+import { GlassMonthView } from '@/components/schedule/glass-month-view';
+
+// 🔧 类型定义
+interface ScheduledPost {
+  id: string;
+  content: string;
+  platform: string;
+  scheduledTime: string;
+  status: string;
+  engagement: number;
+  color: string;
+}
 
 const scheduledPosts = [
   {
@@ -78,18 +79,23 @@ const scheduledPosts = [
   }
 ];
 
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
+// 🎨 Platform color mapping
+const getPlatformColor = (platform: string): string => {
+  const colors: Record<string, string> = {
+    twitter: '#1da1f2',
+    instagram: '#e4405f',
+    facebook: '#1877f2',
+    youtube: '#ff0000',
+    linkedin: '#0077b5',
+  };
+  return colors[platform] || '#6366f1';
+};
 
 export default function SchedulePage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'week'>('calendar');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  
+
   // 🆕 过滤器状态管理
   const [filters, setFilters] = useState({
     platform: 'all',
@@ -99,36 +105,33 @@ export default function SchedulePage() {
   });
 
   // 🆕 拖拽状态管理
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [posts, setPosts] = useState(scheduledPosts);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
   // 🆕 React Query mutation for optimistic updates
   const updateScheduleMutation = useUpdatePostSchedule();
 
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    const days = [];
-    
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-    
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
-    }
-    
-    return days;
-  };
+  // 🔧 修复: 使用 React Query 获取真实数据
+  const { data: posts = scheduledPosts, isLoading } = useQuery({
+    queryKey: ["posts"],
+    queryFn: async () => {
+      const response = await fetch('/api/posts');
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts');
+      }
+      const result = await response.json();
+      // 为每个 post 添加 color 属性
+      return result.data.map((post: ScheduledPost) => ({
+        ...post,
+        color: getPlatformColor(post.platform),
+      }));
+    },
+    // 开发环境下使用 mock 数据作为 fallback
+    placeholderData: scheduledPosts,
+  });
 
   // 🆕 过滤逻辑实现
   const filteredPosts = React.useMemo(() => {
-    return posts.filter(post => {
+    return posts.filter((post: ScheduledPost) => {
       // 平台过滤
       if (filters.platform !== 'all' && post.platform !== filters.platform) {
         return false;
@@ -142,7 +145,7 @@ export default function SchedulePage() {
       // 日期范围过滤
       const postDate = new Date(post.scheduledTime);
       const now = new Date();
-      
+
       switch (filters.dateRange) {
         case 'next-7-days':
           const sevenDaysLater = new Date(now);
@@ -155,7 +158,7 @@ export default function SchedulePage() {
           if (postDate < now || postDate > thirtyDaysLater) return false;
           break;
         case 'this-month':
-          if (postDate.getMonth() !== now.getMonth() || 
+          if (postDate.getMonth() !== now.getMonth() ||
               postDate.getFullYear() !== now.getFullYear()) {
             return false;
           }
@@ -174,30 +177,6 @@ export default function SchedulePage() {
       return true;
     });
   }, [filters, posts]);
-
-  const getPostsForDate = (date: Date) => {
-    return filteredPosts.filter(post => {
-      const postDate = new Date(post.scheduledTime);
-      return postDate.toDateString() === date.toDateString();
-    });
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(prev.getMonth() - 1);
-      } else {
-        newDate.setMonth(prev.getMonth() + 1);
-      }
-      return newDate;
-    });
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
 
   // 🆕 操作处理函数
   const handleViewPost = (postId: string) => {
@@ -221,7 +200,7 @@ export default function SchedulePage() {
   };
 
   // 🆕 拖拽处理函数
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
   };
 
@@ -237,7 +216,7 @@ export default function SchedulePage() {
     const targetDateStr = over.id as string;
 
     // 计算新的调度时间（保持原有时间，只更新日期）
-    const post = posts.find(p => p.id === postId);
+    const post = posts.find((p: ScheduledPost) => p.id === postId);
     if (!post) return;
 
     const currentTime = new Date(post.scheduledTime);
@@ -249,64 +228,12 @@ export default function SchedulePage() {
 
     const newScheduledTime = targetDate.toISOString();
 
-    // 乐观更新本地状态
-    setPosts((prevPosts) =>
-      prevPosts.map((p) =>
-        p.id === postId ? { ...p, scheduledTime: newScheduledTime } : p
-      )
-    );
-
-    // 使用 React Query mutation 调用 API（带乐观更新和错误回滚）
+    // 🔧 修复: 移除本地 setPosts，完全依赖 React Query 的乐观更新
+    // React Query mutation 会在 onMutate 中处理乐观更新
     updateScheduleMutation.mutate({
       postId,
       scheduledTime: newScheduledTime,
     });
-  };
-
-  const days = getDaysInMonth(currentDate);
-
-  // 🆕 可放置的日期格子组件
-  const DroppableCalendarDay = ({ day, index }: { day: Date | null; index: number }) => {
-    const { setNodeRef, isOver } = useDroppable({
-      id: day ? day.toISOString() : `empty-${index}`,
-      disabled: !day,
-    });
-
-    return (
-      <div
-        ref={setNodeRef}
-        className={cn(
-          "min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 rounded-md border transition-colors cursor-pointer",
-          day
-            ? isToday(day)
-              ? 'ring-2 ring-primary bg-accent/50'
-              : 'hover:bg-accent hover:border-primary/50'
-            : 'bg-muted/30 cursor-default',
-          isOver && 'ring-2 ring-blue-500 bg-blue-50'
-        )}
-        onClick={() => day && setSelectedDate(day)}
-      >
-        {day && (
-          <>
-            <div className={cn("text-xs sm:text-sm font-medium mb-1 sm:mb-2", isToday(day) && "text-primary")}>
-              {day.getDate()}
-            </div>
-            <div className="space-y-0.5 sm:space-y-1">
-              {getPostsForDate(day)
-                .slice(0, 3)
-                .map((post) => (
-                  <DraggablePostCard key={post.id} post={post} />
-                ))}
-              {getPostsForDate(day).length > 3 && (
-                <div className="text-xs text-muted-foreground">
-                  +{getPostsForDate(day).length - 3} more
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -370,66 +297,12 @@ export default function SchedulePage() {
         </div>
 
         {viewMode === 'calendar' ? (
-          /* 🆕 使用 DndContext 包裹日历视图实现拖拽 */
-          <DndContext
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-          <Card>
-            <CardHeader className="border-b">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigateMonth('prev')}
-                    className="flex-shrink-0"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
-                  <h2 className="text-lg sm:text-xl font-semibold whitespace-nowrap">
-                    {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigateMonth('next')}
-                    className="flex-shrink-0"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
-                </div>
-                <Button
-                  variant="neutral"
-                  onClick={() => setCurrentDate(new Date())}
-                  className="w-full sm:w-auto"
-                >
-                  Today
-                </Button>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-3 sm:p-6">
-              {/* Days of week header - 响应式优化 */}
-              <div className="grid grid-cols-7 gap-2 sm:gap-4 mb-3 sm:mb-4">
-                {daysOfWeek.map((day) => (
-                  <div key={day} className="text-center text-xs sm:text-sm font-medium text-muted-foreground py-2">
-                    <span className="hidden sm:inline">{day}</span>
-                    <span className="sm:hidden">{day.slice(0, 1)}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar days - 🆕 使用拖拽组件 响应式间距 */}
-              <div className="grid grid-cols-7 gap-2 sm:gap-4">
-                {days.map((day, index) => (
-                  <DroppableCalendarDay key={index} day={day} index={index} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          </DndContext>
+          /* 🎨 Glass Month View - 玻璃态月视图 */
+          <GlassMonthView
+            posts={filteredPosts}
+            onNewPost={() => {/* TODO: 导航到 compose 页面 */}}
+            onDateSelect={setSelectedDate}
+          />
         ) : viewMode === 'week' ? (
           /* 🆕 Week View with Drag and Drop */
           <DndContext
@@ -506,7 +379,7 @@ export default function SchedulePage() {
                   </select>
                 </div>
               </div>
-              
+
               {/* 🆕 过滤结果统计 */}
               <div className="text-sm text-muted-foreground mt-2">
                 Showing {filteredPosts.length} of {scheduledPosts.length} posts
@@ -516,7 +389,7 @@ export default function SchedulePage() {
               <div className="divide-y">
                 {/* 🆕 使用 filteredPosts 替代 scheduledPosts */}
                 {filteredPosts.length > 0 ? (
-                  filteredPosts.map((post) => (
+                  filteredPosts.map((post: ScheduledPost) => (
                     <div key={post.id} className="p-6 hover:bg-accent/50 transition-colors">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -545,23 +418,23 @@ export default function SchedulePage() {
                         </div>
                         <div className="flex items-center gap-1 ml-4">
                           {/* 🆕 绑定 onClick 事件 */}
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleViewPost(post.id)}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleEditPost(post.id)}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeletePost(post.id)}
                           >
@@ -576,7 +449,7 @@ export default function SchedulePage() {
                   <div className="p-12 text-center">
                     <p className="text-muted-foreground">No posts match your filters</p>
                     <Button
-                      variant="link"
+                      variant="ghost"
                       className="mt-2"
                       onClick={() => setFilters({ platform: 'all', dateRange: 'next-7-days', status: 'all', searchTerm: '' })}
                     >

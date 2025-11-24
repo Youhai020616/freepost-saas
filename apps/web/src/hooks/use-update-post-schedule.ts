@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner"; // 🔧 添加 toast 通知
 
 interface UpdateSchedulePayload {
   postId: string;
@@ -28,7 +29,8 @@ export function useUpdatePostSchedule() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update post schedule");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update post schedule");
       }
 
       return response.json();
@@ -51,11 +53,19 @@ export function useUpdatePostSchedule() {
       // Return a context object with the snapshotted value
       return { previousPosts };
     },
-    onError: (_err, _variables, context) => {
+    onSuccess: () => {
+      // 🔧 添加成功提示
+      toast.success("Post schedule updated successfully");
+    },
+    onError: (err, _variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousPosts) {
         queryClient.setQueryData(["posts"], context.previousPosts);
       }
+      
+      // 🔧 添加用户友好的错误提示
+      const errorMessage = err instanceof Error ? err.message : "Failed to update post schedule";
+      toast.error(errorMessage);
     },
     onSettled: () => {
       // Always refetch after error or success to ensure consistency

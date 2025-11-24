@@ -1,5 +1,7 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
+
+const config: Config = {
   darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,6 +11,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // ✅ 保留 Tailwind 默认颜色
+        purple: colors.purple,
+        blue: colors.blue,
+        green: colors.green,
+        // 自定义颜色
         main: 'var(--main)',
         overlay: 'var(--overlay)',
         bg: 'var(--bg)',
@@ -48,10 +55,16 @@ module.exports = {
     },
   },
   plugins: [
-    function ({ matchUtilities, theme }) {
+    function ({ matchUtilities, theme }: {
+      matchUtilities: (
+        utilities: Record<string, (value: string) => Record<string, string>>,
+        options: { values: Record<string, string> }
+      ) => void;
+      theme: (key: string) => Record<string, string>;
+    }) {
       matchUtilities(
         {
-          'text-shadow': (value) => ({
+          'text-shadow': (value: string) => ({
             textShadow: value,
           }),
         },
@@ -59,4 +72,6 @@ module.exports = {
       )
     },
   ],
-}
+};
+
+export default config;

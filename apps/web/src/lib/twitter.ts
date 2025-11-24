@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { prisma } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 
 // ===== Utility: PKCE =====
 function base64url(input: Buffer) {
@@ -28,10 +29,18 @@ type TwitterStatePayload = {
 }
 
 export async function persistTwitterState(state: string, payload: TwitterStatePayload) {
+  // 🔧 改进: 使用 Prisma.JsonValue 类型
   await prisma.cache.upsert({
     where: { key: `oauth:twitter:${state}` },
-    update: { value: payload as any, expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
-    create: { key: `oauth:twitter:${state}`, value: payload as any, expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
+    update: {
+      value: payload as Prisma.InputJsonValue,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+    },
+    create: {
+      key: `oauth:twitter:${state}`,
+      value: payload as Prisma.InputJsonValue,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+    },
   })
 }
 
@@ -40,7 +49,25 @@ export async function consumeTwitterState(state: string | null) {
   const rec = await prisma.cache.findUnique({ where: { key: `oauth:twitter:${state}` } })
   if (!rec) return null
   await prisma.cache.delete({ where: { key: `oauth:twitter:${state}` } })
-  return rec.value as TwitterStatePayload
+  // 🔧 改进: 添加运行时类型验证
+  const value = rec.value as Record<string, unknown>
+  if (!isTwitterStatePayload(value)) {
+    throw new Error('Invalid Twitter state payload')
+  }
+  return value
+}
+
+// 🔧 新增: 类型守卫函数
+function isTwitterStatePayload(value: unknown): value is TwitterStatePayload {
+  if (typeof value !== 'object' || value === null) return false
+  const obj = value as Record<string, unknown>
+  return (
+    typeof obj.slug === 'string' &&
+    typeof obj.userId === 'string' &&
+    typeof obj.code_verifier === 'string' &&
+    typeof obj.redirect_uri === 'string' &&
+    (obj.returnTo === undefined || typeof obj.returnTo === 'string')
+  )
 }
 
 export async function createTwitterAuthUrl(input: { slug: string; userId: string; returnTo?: string; redirectUri: string }) {
@@ -132,7 +159,7 @@ export async function upsertTwitterAccount(input: { workspaceId: string; externa
   if (existing) {
     await prisma.socialAccount.update({
       where: { id: existing.id },
-      data: { accessToken: input.tokens.access_token, refreshToken: input.tokens.refresh_token ?? existing.refreshToken, meta: meta as any },
+      data: { accessToken: input.tokens.access_token, refreshToken: input.tokens.refresh_token ?? existing.refreshToken, meta: meta as Prisma.InputJsonValue },
     })
   } else {
     await prisma.socialAccount.create({
@@ -142,7 +169,7 @@ export async function upsertTwitterAccount(input: { workspaceId: string; externa
         externalId: input.externalId,
         accessToken: input.tokens.access_token,
         refreshToken: input.tokens.refresh_token ?? null,
-        meta: meta as any,
+        meta: meta as Prisma.InputJsonValue,
       },
     })
   }
@@ -151,8 +178,8 @@ export async function upsertTwitterAccount(input: { workspaceId: string; externa
 export async function getValidTwitterAccessToken(socialAccountId: string) {
   const acc = await prisma.socialAccount.findUnique({ where: { id: socialAccountId } })
   if (!acc || acc.provider !== 'twitter') throw new Error('twitter account not found')
-  const meta = (acc.meta as any) || {}
-  const expiresAt = meta?.expiresAt ? new Date(meta.expiresAt) : null
+  const meta = (acc.meta as Record<string, unknown>) || {}
+  const expiresAt = meta?.expiresAt && typeof meta.expiresAt === 'string' ? new Date(meta.expiresAt) : null
   const now = new Date()
   if (expiresAt && expiresAt.getTime() - now.getTime() < 60 * 1000 && acc.refreshToken) {
     const tokens = await refreshTwitterToken(acc.refreshToken)
@@ -162,7 +189,7 @@ export async function getValidTwitterAccessToken(socialAccountId: string) {
       data: {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token ?? acc.refreshToken,
-        meta: { ...(meta || {}), expiresAt: newExpiresAt ? newExpiresAt.toISOString() : null, updatedAt: new Date().toISOString() } as any,
+        meta: { ...(meta || {}), expiresAt: newExpiresAt ? newExpiresAt.toISOString() : null, updatedAt: new Date().toISOString() } as Prisma.InputJsonValue,
       },
     })
     return tokens.access_token

@@ -57,8 +57,12 @@ function Calendar({
     {} as typeof defaultClassNames,
   );
 
+  interface ChevronProps extends React.HTMLAttributes<SVGElement> {
+    orientation?: 'left' | 'right';
+  }
+
   const defaultComponents = {
-    Chevron: (props: any) => {
+    Chevron: (props: ChevronProps) => {
       if (props.orientation === "left") {
         return <ChevronLeft size={16} strokeWidth={2} {...props} aria-hidden="true" />;
       }
