@@ -11,6 +11,7 @@
  *   const decrypted = await decryptToken(encrypted);
  */
 
+import nodeCrypto from 'crypto';
 import { env } from './env';
 import { logger } from './logger';
 
@@ -59,7 +60,7 @@ export async function encryptToken(plaintext: string): Promise<string> {
     const encrypted = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv,
+        iv: iv as BufferSource,
       },
       key,
       data
@@ -148,5 +149,5 @@ export function secureCompare(a: string, b: string): boolean {
   const bufferA = Buffer.from(a);
   const bufferB = Buffer.from(b);
 
-  return crypto.timingSafeEqual(bufferA, bufferB);
+  return nodeCrypto.timingSafeEqual(bufferA, bufferB);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { Play, Pause, Mail, ArrowRight, Menu, ChevronDown, Sun, Moon } from 'lucide-react';
 
@@ -142,7 +143,7 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
 
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-3">
-              <a href="/sign-in" className="bg-black text-white hover:bg-gray-800 cursor-pointer py-2 px-4 text-sm capitalize font-medium transition-colors rounded-xl">Sign In</a>
+              <a href="/sign-in" className="bg-transparent text-foreground border border-border hover:bg-muted cursor-pointer py-2 px-4 text-sm capitalize font-medium transition-colors rounded-xl">Sign In</a>
               <a href="/sign-up" className="bg-black hover:bg-gray-800 text-white py-2.5 px-5 text-sm rounded-xl capitalize font-medium transition-colors flex items-center gap-2">
                 Get Started<ArrowRight className="h-4 w-4" />
               </a>
@@ -183,7 +184,7 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
                       <li><a href="#team" className="block px-3 py-1.5 text-sm text-muted-foreground hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-foreground rounded-lg">Team Plan</a></li>
                   </ul>)}</li>
                   <li className="border-t border-border mt-2 pt-2 space-y-2">
-                    <a href="/sign-in" className="block w-full text-center px-3 py-2 text-sm bg-black text-white hover:bg-gray-800 rounded-lg">Sign In</a>
+                    <a href="/sign-in" className="block w-full text-center px-3 py-2 text-sm bg-transparent text-foreground border border-border hover:bg-muted rounded-lg">Sign In</a>
                     <a href="/sign-up" className="w-full bg-black text-white hover:bg-gray-800 px-3 py-2.5 text-sm rounded-lg flex items-center justify-center gap-2 font-medium">
                       Get Started<ArrowRight className="h-4 w-4" />
                     </a>
@@ -221,11 +222,14 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
         </div>
 
         {/* --- Media Header --- */}
-        <header className="relative w-full aspect-video rounded-3xl overflow-hidden">
-          <img
+        <header className="relative w-full aspect-video rounded-3xl overflow-hidden gpu-accelerated">
+          <Image
             src={backgroundImage}
             alt="Social media management dashboard"
-            className={`w-full h-full absolute inset-0 object-cover transition-opacity duration-500 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`}
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+            className={`object-cover transition-opacity duration-500 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`}
           />
           <video
             ref={videoRef}
@@ -234,6 +238,7 @@ const NavbarHero: React.FC<NavbarHeroProps> = ({
             onEnded={handleVideoEnded}
             playsInline
             muted
+            preload="none"
           />
           <div className="absolute bottom-5 right-5 z-10">
             {!isVideoPlaying ? (

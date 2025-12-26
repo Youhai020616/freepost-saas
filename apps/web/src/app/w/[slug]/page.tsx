@@ -1,6 +1,20 @@
 'use client';
 import React, { useState } from "react";
-import { SocialMediaDashboard, SocialPost, Notification } from "@/components/ui/social-media-dashboard";
+import dynamic from "next/dynamic";
+import type { SocialPost, Notification } from "@/components/ui/social-media-dashboard";
+
+// 动态导入大型组件 - 减少初始 JS 包大小
+const SocialMediaDashboard = dynamic(
+  () => import("@/components/ui/social-media-dashboard").then((mod) => mod.SocialMediaDashboard),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    ),
+  }
+);
 
 const initialPosts: SocialPost[] = [
   {

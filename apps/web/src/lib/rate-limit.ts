@@ -4,6 +4,10 @@
  * Protects API routes from abuse and DDoS attacks.
  * Configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in .env
  *
+ * Security Note:
+ * - Critical endpoints (auth, oauth) use FAIL-CLOSED strategy
+ * - Non-critical endpoints use FAIL-OPEN to prioritize availability
+ *
  * Usage in API routes:
  *   import { rateLimit } from '@/lib/rate-limit';
  *
@@ -16,8 +20,12 @@
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { env, isFeatureEnabled } from "./env";
+import { env, isFeatureEnabled, isProduction } from "./env";
 import { logger } from "./logger";
+
+// Track consecutive errors for alerting
+let consecutiveErrors = 0;
+const ERROR_THRESHOLD = 5;
 
 // Initialize Redis client only if credentials are available
 let redis: Redis | null = null;
@@ -82,7 +90,7 @@ export const rateLimitConfigs = {
 /**
  * Create a rate limiter with custom configuration
  */
-export function createRateLimiter(config: { requests: number; window: string }) {
+export function createRateLimiter(config: { requests: number; window: `${number} s` | `${number} m` | `${number} h` | `${number} d` }) {
   if (!redis) return null;
 
   return new Ratelimit({
@@ -93,12 +101,20 @@ export function createRateLimiter(config: { requests: number; window: string }) 
   });
 }
 
+// Critical endpoints that should FAIL-CLOSED (reject on error)
+const CRITICAL_ENDPOINTS: (keyof typeof rateLimitConfigs)[] = ['auth', 'oauth'];
+
 /**
  * Apply rate limiting to a request
  *
  * @param identifier - Unique identifier (IP, user ID, API key, etc.)
  * @param config - Optional custom rate limit configuration
  * @returns Rate limit result with success status and metadata
+ *
+ * Security behavior:
+ * - Critical endpoints (auth, oauth): FAIL-CLOSED - reject requests on error
+ * - Non-critical endpoints: FAIL-OPEN - allow requests on error (availability priority)
+ * - Production without Redis: Log warning and allow (but should be configured)
  */
 export async function rateLimit(
   identifier: string,
@@ -109,9 +125,16 @@ export async function rateLimit(
   remaining: number;
   reset: number;
 }> {
-  // If rate limiting is not configured, allow all requests
+  const isCriticalEndpoint = config && CRITICAL_ENDPOINTS.includes(config);
+
+  // If rate limiting is not configured
   if (!ratelimitInstance && !config) {
-    logger.debug('Rate limiting not configured, allowing request');
+    // In production, log a warning for visibility
+    if (isProduction) {
+      logger.warn('Rate limiting not configured in production - consider enabling Redis');
+    } else {
+      logger.debug('Rate limiting not configured, allowing request');
+    }
     return {
       success: true,
       limit: 0,
@@ -127,6 +150,16 @@ export async function rateLimit(
       : ratelimitInstance;
 
     if (!limiter) {
+      // For critical endpoints in production, fail closed
+      if (isCriticalEndpoint && isProduction) {
+        logger.error('Rate limiter unavailable for critical endpoint', { config });
+        return {
+          success: false,
+          limit: 0,
+          remaining: 0,
+          reset: Date.now() + 60000,
+        };
+      }
       logger.warn('Rate limiter not available');
       return {
         success: true,
@@ -137,6 +170,7 @@ export async function rateLimit(
     }
 
     const result = await limiter.limit(identifier);
+    consecutiveErrors = 0; // Reset error counter on success
 
     if (!result.success) {
       logger.warn('Rate limit exceeded', {
@@ -148,8 +182,29 @@ export async function rateLimit(
 
     return result;
   } catch (error) {
-    logger.error('Rate limiting error', { error, identifier });
-    // On error, allow the request (fail open)
+    consecutiveErrors++;
+    logger.error('Rate limiting error', { error, identifier, consecutiveErrors });
+
+    // Alert if errors exceed threshold
+    if (consecutiveErrors >= ERROR_THRESHOLD) {
+      logger.error('ALERT: Rate limiter experiencing repeated failures', {
+        consecutiveErrors,
+        config,
+      });
+    }
+
+    // SECURITY: Critical endpoints use FAIL-CLOSED strategy
+    if (isCriticalEndpoint) {
+      logger.warn('Rejecting request due to rate limiter error on critical endpoint', { config });
+      return {
+        success: false,
+        limit: 0,
+        remaining: 0,
+        reset: Date.now() + 60000, // Retry after 1 minute
+      };
+    }
+
+    // Non-critical endpoints: FAIL-OPEN for availability
     return {
       success: true,
       limit: 0,

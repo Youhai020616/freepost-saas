@@ -7,6 +7,34 @@ import { oauthSchemas } from "@/lib/validation/schemas";
 import { logger } from "@/lib/logger";
 import { handleApiError, errors } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
+import { env } from "@/lib/env";
+
+/**
+ * Validate returnTo URL to prevent open redirect attacks
+ * Only allows relative paths or same-origin URLs
+ */
+function validateReturnTo(returnTo: string | null): string | undefined {
+  if (!returnTo) return undefined;
+
+  // Allow relative paths (but not protocol-relative //evil.com)
+  if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+    return returnTo;
+  }
+
+  // Validate same-origin for absolute URLs
+  try {
+    const targetUrl = new URL(returnTo);
+    const appUrl = new URL(env.APP_URL);
+    if (targetUrl.origin === appUrl.origin) {
+      return returnTo;
+    }
+  } catch {
+    // Invalid URL format - reject
+  }
+
+  logger.warn('Rejected invalid returnTo URL', { returnTo });
+  return undefined;
+}
 
 /**
  * GET /api/oauth/:provider/start
@@ -35,9 +63,9 @@ export async function GET(
     // Validate provider parameter
     const { provider } = validateParams(await params, oauthSchemas.params);
 
-    // Validate query parameters
+    // Validate query parameters - SECURITY: validate returnTo to prevent open redirect
     const url = new URL(req.url);
-    const returnTo = url.searchParams.get("return_to") || undefined;
+    const returnTo = validateReturnTo(url.searchParams.get("return_to"));
 
     // Require authenticated user and workspace
     const { userId, workspaceId } = await requireSessionAndWorkspace();

@@ -1,5 +1,7 @@
 import crypto from 'crypto'
 import { prisma } from '@/lib/db'
+import { encryptToken, decryptToken } from '@/lib/crypto'
+import { env, isFeatureEnabled } from '@/lib/env'
 import type { Prisma } from '@prisma/client'
 
 // ===== Utility: PKCE =====
@@ -71,8 +73,11 @@ function isTwitterStatePayload(value: unknown): value is TwitterStatePayload {
 }
 
 export async function createTwitterAuthUrl(input: { slug: string; userId: string; returnTo?: string; redirectUri: string }) {
-  const clientId = process.env.OAUTH_TWITTER_CLIENT_ID
-  if (!clientId) throw new Error('Missing OAUTH_TWITTER_CLIENT_ID')
+  // Use validated env module instead of direct process.env access
+  if (!isFeatureEnabled('twitter')) {
+    throw new Error('Twitter OAuth is not configured. Set OAUTH_TWITTER_CLIENT_ID and OAUTH_TWITTER_CLIENT_SECRET.')
+  }
+  const clientId = env.OAUTH_TWITTER_CLIENT_ID!;
   const { verifier, challenge } = generateCodeVerifier()
   const state = base64url(crypto.randomBytes(16))
 
@@ -98,8 +103,11 @@ export async function createTwitterAuthUrl(input: { slug: string; userId: string
 }
 
 export async function exchangeTwitterToken(input: { code: string; code_verifier: string; redirect_uri: string }) {
-  const clientId = process.env.OAUTH_TWITTER_CLIENT_ID
-  if (!clientId) throw new Error('Missing OAUTH_TWITTER_CLIENT_ID')
+  // Use validated env module instead of direct process.env access
+  if (!isFeatureEnabled('twitter')) {
+    throw new Error('Twitter OAuth is not configured')
+  }
+  const clientId = env.OAUTH_TWITTER_CLIENT_ID!;
 
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
@@ -120,8 +128,11 @@ export async function exchangeTwitterToken(input: { code: string; code_verifier:
 }
 
 export async function refreshTwitterToken(refresh_token: string) {
-  const clientId = process.env.OAUTH_TWITTER_CLIENT_ID
-  if (!clientId) throw new Error('Missing OAUTH_TWITTER_CLIENT_ID')
+  // Use validated env module instead of direct process.env access
+  if (!isFeatureEnabled('twitter')) {
+    throw new Error('Twitter OAuth is not configured')
+  }
+  const clientId = env.OAUTH_TWITTER_CLIENT_ID!;
 
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
@@ -156,10 +167,21 @@ export async function upsertTwitterAccount(input: { workspaceId: string; externa
     expiresAt: expiresAt ? expiresAt.toISOString() : null,
     updatedAt: new Date().toISOString(),
   }
+  
+  // Encrypt tokens before storing
+  const encryptedAccessToken = await encryptToken(input.tokens.access_token)
+  const encryptedRefreshToken = input.tokens.refresh_token 
+    ? await encryptToken(input.tokens.refresh_token) 
+    : null
+
   if (existing) {
     await prisma.socialAccount.update({
       where: { id: existing.id },
-      data: { accessToken: input.tokens.access_token, refreshToken: input.tokens.refresh_token ?? existing.refreshToken, meta: meta as Prisma.InputJsonValue },
+      data: { 
+        accessToken: encryptedAccessToken, 
+        refreshToken: encryptedRefreshToken ?? existing.refreshToken, 
+        meta: meta as Prisma.InputJsonValue 
+      },
     })
   } else {
     await prisma.socialAccount.create({
@@ -167,8 +189,8 @@ export async function upsertTwitterAccount(input: { workspaceId: string; externa
         workspaceId: input.workspaceId,
         provider: 'twitter',
         externalId: input.externalId,
-        accessToken: input.tokens.access_token,
-        refreshToken: input.tokens.refresh_token ?? null,
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
         meta: meta as Prisma.InputJsonValue,
       },
     })
@@ -178,23 +200,37 @@ export async function upsertTwitterAccount(input: { workspaceId: string; externa
 export async function getValidTwitterAccessToken(socialAccountId: string) {
   const acc = await prisma.socialAccount.findUnique({ where: { id: socialAccountId } })
   if (!acc || acc.provider !== 'twitter') throw new Error('twitter account not found')
+  
   const meta = (acc.meta as Record<string, unknown>) || {}
   const expiresAt = meta?.expiresAt && typeof meta.expiresAt === 'string' ? new Date(meta.expiresAt) : null
   const now = new Date()
+  
+  // Decrypt stored token
+  const decryptedAccessToken = await decryptToken(acc.accessToken)
+  
   if (expiresAt && expiresAt.getTime() - now.getTime() < 60 * 1000 && acc.refreshToken) {
-    const tokens = await refreshTwitterToken(acc.refreshToken)
+    // Decrypt refresh token for refresh operation
+    const decryptedRefreshToken = await decryptToken(acc.refreshToken)
+    const tokens = await refreshTwitterToken(decryptedRefreshToken)
     const newExpiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
+    
+    // Encrypt new tokens before storing
+    const newEncryptedAccessToken = await encryptToken(tokens.access_token)
+    const newEncryptedRefreshToken = tokens.refresh_token 
+      ? await encryptToken(tokens.refresh_token) 
+      : acc.refreshToken
+    
     await prisma.socialAccount.update({
       where: { id: acc.id },
       data: {
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token ?? acc.refreshToken,
+        accessToken: newEncryptedAccessToken,
+        refreshToken: newEncryptedRefreshToken,
         meta: { ...(meta || {}), expiresAt: newExpiresAt ? newExpiresAt.toISOString() : null, updatedAt: new Date().toISOString() } as Prisma.InputJsonValue,
       },
     })
     return tokens.access_token
   }
-  return acc.accessToken
+  return decryptedAccessToken
 }
 
 export async function postTweet(accessToken: string, text: string) {

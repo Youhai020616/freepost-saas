@@ -49,11 +49,12 @@ export function validateQuery<T extends ZodSchema>(
 ): z.infer<T> {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const params = Object.fromEntries(searchParams.entries());
+    const rawParams = Object.fromEntries(searchParams.entries());
 
     // Convert numeric strings to numbers for common pagination params
-    if (params.page) params.page = Number(params.page);
-    if (params.limit) params.limit = Number(params.limit);
+    const params: Record<string, string | number> = { ...rawParams };
+    if (rawParams.page) params.page = Number(rawParams.page);
+    if (rawParams.limit) params.limit = Number(rawParams.limit);
 
     return schema.parse(params);
   } catch (error) {

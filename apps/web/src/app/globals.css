@@ -2,7 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Aurora Animation */
+/* ========================================
+   性能优化 - Performance Optimizations
+   ======================================== */
+
+/* 平滑滚动 - 仅在用户未设置 reduced motion 时启用 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* 禁用动画 - 尊重用户的无障碍偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Aurora Animation - GPU 加速优化 */
 @keyframes aurora {
   from {
     background-position: 50% 50%, 50% 50%;
@@ -86,7 +109,41 @@
 }
 
 @layer utilities {
+  /* Aurora 动画 - GPU 加速 */
   .animate-aurora {
     animation: aurora 60s linear infinite;
+    will-change: background-position;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* GPU 加速工具类 */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  /* 优化滚动容器 */
+  .scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* 图片加载优化 */
+  .img-optimized {
+    content-visibility: auto;
+  }
+
+  /* 减少重绘的过渡 */
+  .transition-gpu {
+    transition-property: transform, opacity;
+    will-change: transform, opacity;
+  }
+
+  /* 延迟加载容器 */
+  .lazy-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
   }
 }

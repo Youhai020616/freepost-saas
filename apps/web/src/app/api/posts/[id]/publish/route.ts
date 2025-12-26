@@ -34,15 +34,43 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
     logger.info('Publishing post', { postId: id, workspaceId });
 
-    // Fetch post
-    const existing = await prisma.post.findUnique({ where: { id } });
-    if (!existing || existing.workspaceId !== workspaceId) {
-      throw errors.notFound('Post', id);
+    // Atomic check-and-update to prevent race conditions
+    // First, try to claim the post for publishing by atomically updating status
+    // CRITICAL: Only allow DRAFT posts to be claimed - this prevents race conditions
+    // where two concurrent requests could both claim a SCHEDULED post
+    const claimResult = await prisma.post.updateMany({
+      where: {
+        id,
+        workspaceId,
+        status: 'DRAFT'  // Only claim if still in DRAFT state (prevents race conditions)
+      },
+      data: {
+        status: 'SCHEDULED'  // Temporarily mark as SCHEDULED to prevent concurrent publishes
+      }
+    });
+
+    if (claimResult.count === 0) {
+      // Either post doesn't exist, wrong workspace, or already published
+      const existing = await prisma.post.findUnique({ 
+        where: { id },
+        select: { workspaceId: true, status: true }
+      });
+      
+      if (!existing || existing.workspaceId !== workspaceId) {
+        throw errors.notFound('Post', id);
+      }
+      
+      if (existing.status === 'PUBLISHED') {
+        throw errors.badRequest('Post is already published');
+      }
+      
+      throw errors.badRequest('Post cannot be published in current state');
     }
 
-    // Validate post can be published
-    if (existing.status === 'PUBLISHED') {
-      throw errors.badRequest('Post is already published');
+    // Fetch the full post for publishing
+    const existing = await prisma.post.findUnique({ where: { id } });
+    if (!existing) {
+      throw errors.notFound('Post', id);
     }
 
     // Platform-specific publishing
@@ -95,7 +123,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       });
     }
 
-    // Update post status
+    // Update post status atomically
     const updatedPost = await prisma.post.update({
       where: { id },
       data: {

@@ -3,16 +3,30 @@ import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { handleApiError } from "@/lib/errors";
 import { getValidTwitterAccessToken, postTweet } from "@/lib/twitter";
+import { secureCompare } from "@/lib/crypto";
+import { env } from "@/lib/env";
 
 // POST /api/cron/publish - invoked by Vercel Cron
 export async function POST(req: NextRequest) {
   try {
-    // Verify cron secret for security
+    // Verify cron secret for security - FAIL CLOSED
     const authHeader = req.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
+    // Use validated env module instead of direct process.env access
+    const cronSecret = env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      logger.warn('Unauthorized cron request');
+    // Security: Require CRON_SECRET to be configured
+    if (!cronSecret) {
+      logger.error('CRON_SECRET not configured - cron endpoint disabled');
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
+
+    // Use constant-time comparison to prevent timing attacks
+    const expectedAuth = `Bearer ${cronSecret}`;
+    if (!authHeader || !secureCompare(authHeader, expectedAuth)) {
+      logger.warn('Unauthorized cron request', {
+        hasAuth: !!authHeader,
+        ip: req.headers.get('x-forwarded-for') || 'unknown'
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -42,6 +56,24 @@ export async function POST(req: NextRequest) {
     };
 
     for (const job of dueJobs) {
+      // CRITICAL: Atomic claim to prevent race conditions when multiple instances run
+      // Use updateMany to atomically claim the job by changing status to RUNNING
+      const claimResult = await prisma.schedulerJob.updateMany({
+        where: {
+          id: job.id,
+          status: "QUEUED"  // Only claim if still QUEUED
+        },
+        data: {
+          status: "RUNNING"
+        }
+      });
+
+      // If count === 0, another instance already claimed this job - skip it
+      if (claimResult.count === 0) {
+        logger.debug('Job already claimed by another instance', { jobId: job.id });
+        continue;
+      }
+
       results.processed++;
 
       try {
@@ -80,11 +112,11 @@ export async function POST(req: NextRequest) {
           throw new Error(`Platform ${job.post.platform} not supported`);
         }
 
-        // Mark as completed
+        // Mark as completed (already RUNNING, now mark as DONE)
         await prisma.$transaction([
           prisma.schedulerJob.update({
             where: { id: job.id },
-            data: { status: "DONE" },
+            data: { status: "DONE", lastError: null },
           }),
           prisma.post.update({
             where: { id: job.postId },

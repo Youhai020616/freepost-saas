@@ -61,6 +61,9 @@ model SocialAccount {
   updatedAt    DateTime  @updatedAt
   workspace    Workspace @relation(fields: [workspaceId], references: [id])
 
+  // CRITICAL: Unique constraint prevents duplicate social accounts
+  // This fixes race condition where concurrent requests could create duplicates
+  @@unique([workspaceId, provider, externalId])
   @@index([workspaceId, provider])
 }
 

@@ -5,6 +5,7 @@ import { handleApiError, errors } from "@/lib/errors";
 import { validateRequest, validateQuery } from "@/lib/validation";
 import { postSchemas } from "@/lib/validation/schemas";
 import { logger } from "@/lib/logger";
+import { Prisma } from "@prisma/client";
 
 // GET /api/posts - list posts for current workspace
 export async function GET(req: NextRequest) {
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     logger.info('Fetching posts', { workspaceId, query });
 
     // Build filter conditions
-    const where: any = { workspaceId };
+    const where: Prisma.PostWhereInput = { workspaceId };
     if (query.status) where.status = query.status;
     if (query.platform) where.platform = query.platform;
 
@@ -79,8 +80,8 @@ export async function POST(req: NextRequest) {
         workspaceId,
         content: data.content,
         platform: data.platform ?? null,
-        targetAccounts: data.targetAccounts ?? null,
-        mediaIds: data.mediaIds ?? null,
+        targetAccounts: data.targetAccounts ? (data.targetAccounts as Prisma.InputJsonValue) : Prisma.JsonNull,
+        mediaIds: data.mediaIds ? (data.mediaIds as Prisma.InputJsonValue) : Prisma.JsonNull,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         status: data.scheduledAt ? "SCHEDULED" : "DRAFT",
       },

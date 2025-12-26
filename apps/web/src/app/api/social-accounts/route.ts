@@ -4,8 +4,10 @@ import { requireSessionAndWorkspace } from "@/lib/guards";
 import { handleApiError, errors } from "@/lib/errors";
 import { validateRequest } from "@/lib/validation";
 import { logger } from "@/lib/logger";
+import { encryptToken } from "@/lib/crypto";
 import { z } from "zod";
 import { patterns } from "@/lib/validation/schemas";
+import { Prisma } from "@prisma/client";
 
 // Schema for creating social account
 const createSocialAccountSchema = z.object({
@@ -13,7 +15,7 @@ const createSocialAccountSchema = z.object({
   externalId: z.string().min(1, 'External ID is required'),
   accessToken: z.string().min(1, 'Access token is required'),
   refreshToken: z.string().optional(),
-  meta: z.record(z.unknown()).optional(),
+  meta: z.record(z.string(), z.unknown()).optional(),
 });
 
 // POST /api/social-accounts - create a social account record (after oauth)
@@ -30,51 +32,45 @@ export async function POST(req: NextRequest) {
       externalId: data.externalId
     });
 
-    // Check if account already exists
-    const existing = await prisma.socialAccount.findFirst({
+    // Encrypt tokens before storing
+    const encryptedAccessToken = await encryptToken(data.accessToken);
+    const encryptedRefreshToken = data.refreshToken 
+      ? await encryptToken(data.refreshToken) 
+      : null;
+
+    // Use upsert to atomically create or update - prevents race conditions
+    // Combined with @@unique constraint in schema, this is fully race-safe
+    const account = await prisma.socialAccount.upsert({
       where: {
-        workspaceId,
-        provider: data.provider,
-        externalId: data.externalId,
-      },
-    });
-
-    if (existing) {
-      // Update existing account instead of creating duplicate
-      logger.info('Updating existing social account', {
-        accountId: existing.id
-      });
-
-      const updated = await prisma.socialAccount.update({
-        where: { id: existing.id },
-        data: {
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken ?? null,
-          meta: data.meta ?? null,
+        // Use the unique constraint for lookup
+        workspaceId_provider_externalId: {
+          workspaceId,
+          provider: data.provider,
+          externalId: data.externalId,
         },
-      });
-
-      return NextResponse.json({ data: updated }, { status: 200 });
-    }
-
-    // Create new account
-    const account = await prisma.socialAccount.create({
-      data: {
+      },
+      update: {
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
+        meta: data.meta ? (data.meta as Prisma.InputJsonValue) : Prisma.JsonNull,
+      },
+      create: {
         workspaceId,
         provider: data.provider,
         externalId: data.externalId,
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken ?? null,
-        meta: data.meta ?? null,
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
+        meta: data.meta ? (data.meta as Prisma.InputJsonValue) : Prisma.JsonNull,
       },
     });
 
-    logger.info('Social account created successfully', {
+    const isUpdate = account.updatedAt.getTime() - account.createdAt.getTime() > 1000;
+    logger.info(isUpdate ? 'Social account updated' : 'Social account created', {
       accountId: account.id,
       provider: account.provider
     });
 
-    return NextResponse.json({ data: account }, { status: 201 });
+    return NextResponse.json({ data: account }, { status: isUpdate ? 200 : 201 });
   } catch (error) {
     return handleApiError(error);
   }

@@ -8,43 +8,49 @@ const features = [
     icon: Calendar,
     title: "Smart Scheduling",
     description: "Schedule posts across all platforms with AI-powered optimal timing suggestions.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80",
-    color: "from-blue-500 to-cyan-400"
+    image: "/images/feature-scheduling.png",
+    iconBg: "bg-blue-100 dark:bg-blue-900/30",
+    iconColor: "text-blue-600 dark:text-blue-400"
   },
   {
     icon: BarChart3,
     title: "Advanced Analytics",
     description: "Track engagement, reach, and performance with detailed insights and reports.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80",
-    color: "from-emerald-500 to-teal-400"
+    image: "/images/feature-analytics.png",
+    iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
+    iconColor: "text-emerald-600 dark:text-emerald-400"
   },
   {
     icon: Users,
     title: "Team Collaboration",
     description: "Work together with your team, assign roles, and manage content approval workflows.",
-    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=80",
-    color: "from-purple-500 to-violet-400"
+    image: "/images/feature-collaboration.png",
+    iconBg: "bg-purple-100 dark:bg-purple-900/30",
+    iconColor: "text-purple-600 dark:text-purple-400"
   },
   {
     icon: Zap,
     title: "Bulk Actions",
     description: "Upload and schedule multiple posts at once to save time and streamline your workflow.",
-    image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&auto=format&fit=crop&q=80",
-    color: "from-amber-500 to-orange-400"
+    image: "/images/feature-bulk.png",
+    iconBg: "bg-amber-100 dark:bg-amber-900/30",
+    iconColor: "text-amber-600 dark:text-amber-400"
   },
   {
     icon: Shield,
     title: "Secure & Reliable",
     description: "Enterprise-grade security with 99.9% uptime guarantee for your peace of mind.",
-    image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&auto=format&fit=crop&q=80",
-    color: "from-red-500 to-pink-400"
+    image: "/images/feature-security.png",
+    iconBg: "bg-red-100 dark:bg-red-900/30",
+    iconColor: "text-red-600 dark:text-red-400"
   },
   {
     icon: Globe,
     title: "Multi-Platform",
     description: "Connect Twitter, Facebook, Instagram, LinkedIn, and more from a single dashboard.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80",
-    color: "from-indigo-500 to-blue-400"
+    image: "/images/feature-multiplatform.png",
+    iconBg: "bg-indigo-100 dark:bg-indigo-900/30",
+    iconColor: "text-indigo-600 dark:text-indigo-400"
   }
 ];
 
@@ -102,16 +108,15 @@ export function FeaturesShowcase() {
                   <img
                     src={feature.image}
                     alt={feature.title}
-                    className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110'
+                    className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${feature.color} opacity-20 group-hover:opacity-30 transition-opacity duration-300`}></div>
                 </div>
 
                 {/* Content */}
                 <div className='p-6'>
                   <div className='flex items-center gap-3 mb-3'>
-                    <div className={`p-2 rounded-lg bg-gradient-to-r ${feature.color}`}>
-                      <feature.icon className='h-5 w-5 text-white' />
+                    <div className={`p-2.5 rounded-xl ${feature.iconBg}`}>
+                      <feature.icon className={`h-5 w-5 ${feature.iconColor}`} strokeWidth={2} />
                     </div>
                     <h3 className='text-xl font-semibold text-foreground'>{feature.title}</h3>
                   </div>
@@ -130,9 +135,9 @@ export function FeaturesShowcase() {
           viewport={{ once: true }}
           className='text-center mt-16'
         >
-          <a 
-            href="/features" 
-            className='inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300'
+          <a
+            href="/features"
+            className='inline-flex items-center gap-2 bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-800 hover:shadow-lg transition-all duration-300'
           >
             Explore All Features
             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

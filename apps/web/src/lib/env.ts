@@ -21,6 +21,9 @@ const envSchema = z.object({
   // Authentication
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET must be at least 32 characters'),
 
+  // Cron Job Authentication (required for scheduled jobs security)
+  CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 characters for security').optional(),
+
   // Supabase Storage
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
   SUPABASE_ANON_KEY: z.string().min(1, 'SUPABASE_ANON_KEY is required'),
@@ -37,9 +40,9 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
-  // Optional: Twitter OAuth
-  TWITTER_CLIENT_ID: z.string().optional(),
-  TWITTER_CLIENT_SECRET: z.string().optional(),
+  // Optional: Twitter OAuth (aligned with twitter.ts)
+  OAUTH_TWITTER_CLIENT_ID: z.string().optional(),
+  OAUTH_TWITTER_CLIENT_SECRET: z.string().optional(),
 
   // Optional: Redis (for rate limiting)
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
@@ -112,7 +115,7 @@ export const isFeatureEnabled = (feature: 'stripe' | 'redis' | 'twitter'): boole
     case 'redis':
       return !!(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
     case 'twitter':
-      return !!(env.TWITTER_CLIENT_ID && env.TWITTER_CLIENT_SECRET);
+      return !!(env.OAUTH_TWITTER_CLIENT_ID && env.OAUTH_TWITTER_CLIENT_SECRET);
     default:
       return false;
   }

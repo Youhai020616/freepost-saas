@@ -12,6 +12,34 @@ import { oauthSchemas } from "@/lib/validation/schemas";
 import { logger } from "@/lib/logger";
 import { handleApiError, errors } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
+import { env } from "@/lib/env";
+
+/**
+ * Validate returnTo URL to prevent open redirect attacks
+ * Only allows relative paths or same-origin URLs
+ */
+function validateReturnTo(returnTo: string | undefined): string | undefined {
+  if (!returnTo) return undefined;
+
+  // Allow relative paths (but not protocol-relative //evil.com)
+  if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+    return returnTo;
+  }
+
+  // Validate same-origin for absolute URLs
+  try {
+    const targetUrl = new URL(returnTo);
+    const appUrl = new URL(env.APP_URL);
+    if (targetUrl.origin === appUrl.origin) {
+      return returnTo;
+    }
+  } catch {
+    // Invalid URL format - reject
+  }
+
+  logger.warn('Rejected invalid returnTo URL in OAuth callback', { returnTo });
+  return undefined;
+}
 
 /**
  * GET /api/oauth/:provider/callback
@@ -75,14 +103,24 @@ export async function GET(
         throw errors.unauthorized('User mismatch');
       }
 
-      // Verify workspace exists
-      const workspace = await prisma.workspace.findUnique({
-        where: { id: ctx.workspaceId },
+      // Verify workspace from state matches authenticated workspace
+      const stateWorkspace = await prisma.workspace.findUnique({
+        where: { slug },
         select: { id: true, slug: true },
       });
 
-      if (!workspace) {
-        throw errors.notFound('Workspace', ctx.workspaceId);
+      if (!stateWorkspace) {
+        throw errors.notFound('Workspace', slug);
+      }
+
+      // Critical: Ensure OAuth state workspace matches current authenticated workspace
+      if (stateWorkspace.id !== ctx.workspaceId) {
+        logger.warn('OAuth workspace mismatch', {
+          stateWorkspace: stateWorkspace.id,
+          authenticatedWorkspace: ctx.workspaceId,
+          userId
+        });
+        throw errors.forbidden('Workspace mismatch - OAuth initiated for different workspace');
       }
 
       // Exchange authorization code for tokens
@@ -118,9 +156,10 @@ export async function GET(
         externalId
       });
 
-      // Redirect back to app
-      const redirectUrl = returnTo || `/w/${slug}`;
-      return NextResponse.redirect(redirectUrl, { status: 302 });
+      // Redirect back to app - SECURITY: validate returnTo to prevent open redirect
+      const safeReturnTo = validateReturnTo(returnTo);
+      const redirectUrl = safeReturnTo || `/w/${slug}`;
+      return NextResponse.redirect(new URL(redirectUrl, env.APP_URL), { status: 302 });
     }
 
     // Unsupported provider
