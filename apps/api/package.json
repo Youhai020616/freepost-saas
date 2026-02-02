@@ -9,14 +9,15 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "hono": "^4.6.9",
-    "@hono/node-server": "^1.13.1",
     "@freepost/db": "workspace:*",
-    "@freepost/types": "workspace:*"
+    "@freepost/types": "workspace:*",
+    "@hono/node-server": "^1.13.1",
+    "@prisma/client": "^6.16.2",
+    "hono": "^4.6.9"
   },
   "devDependencies": {
+    "@types/node": "^20",
     "tsx": "^4.19.2",
-    "typescript": "^5",
-    "@types/node": "^20"
+    "typescript": "^5"
   }
 }

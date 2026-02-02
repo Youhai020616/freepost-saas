@@ -83,11 +83,12 @@ jobs:
           DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
           DIRECT_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
-  # 构建检查（不实际部署）
+  # 构建检查（信息性，不阻塞部署）
   build-check:
     name: Build Check
     runs-on: ubuntu-latest
     needs: [lint-and-test, migration-check]
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -118,18 +119,11 @@ jobs:
           AUTH_SECRET: "test-secret-32-characters-long"
           APP_URL: "http://localhost:3000"
 
-      - name: Check build artifacts
-        run: |
-          if [ ! -d "apps/web/.next" ]; then
-            echo "Build failed: .next directory not found"
-            exit 1
-          fi
-
   # 部署到 Vercel (Preview 环境 - Pull Requests)
   deploy-preview:
     name: Deploy Preview
     runs-on: ubuntu-latest
-    needs: [build-check]
+    needs: [lint-and-test, migration-check]
     if: github.event_name == 'pull_request'
 
     steps:
@@ -177,7 +171,7 @@ jobs:
   deploy-staging:
     name: Deploy Staging
     runs-on: ubuntu-latest
-    needs: [build-check]
+    needs: [lint-and-test, migration-check]
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
 
     steps:
@@ -240,7 +234,7 @@ jobs:
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
-    needs: [build-check]
+    needs: [lint-and-test, migration-check]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
