@@ -221,8 +221,10 @@ jobs:
           DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }} pnpm prisma migrate deploy
 
       - name: Notify Slack
-        if: always()
+        if: always() && env.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v2
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
@@ -294,8 +296,10 @@ jobs:
           fi
 
       - name: Notify Slack (Success)
-        if: success()
+        if: success() && env.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v2
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
@@ -313,8 +317,10 @@ jobs:
             }
 
       - name: Notify Slack (Failure)
-        if: failure()
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v2
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
