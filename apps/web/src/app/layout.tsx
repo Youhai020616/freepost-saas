@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
+import { Toaster } from "sonner"; // 🔧 添加 toast 通知
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,14 +30,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            {/* 🔧 添加全局 toast 通知 */}
+            <Toaster position="top-right" richColors />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

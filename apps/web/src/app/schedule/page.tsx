@@ -1,17 +1,35 @@
 'use client';
+
 import React, { useState } from 'react';
-import { 
-  Calendar, 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
-  Clock, 
-  Edit, 
-  Trash2, 
+import { DndContext, DragEndEvent, DragStartEvent, closestCenter, UniqueIdentifier } from '@dnd-kit/core';
+import { useQuery } from '@tanstack/react-query';
+import { useUpdatePostSchedule } from '@/hooks/use-update-post-schedule';
+import {
+  Calendar as CalendarIcon,
+  Plus,
+  Clock,
+  Edit,
+  Trash2,
   Eye,
   List,
-  MoreHorizontal
 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { WeekView } from '@/components/schedule/week-view';
+import { GlassMonthView } from '@/components/schedule/glass-month-view';
+
+// 🔧 类型定义
+interface ScheduledPost {
+  id: string;
+  content: string;
+  platform: string;
+  scheduledTime: string;
+  status: string;
+  engagement: number;
+  color: string;
+}
 
 const scheduledPosts = [
   {
@@ -61,264 +79,389 @@ const scheduledPosts = [
   }
 ];
 
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
+// 🎨 Platform color mapping
+const getPlatformColor = (platform: string): string => {
+  const colors: Record<string, string> = {
+    twitter: '#1da1f2',
+    instagram: '#e4405f',
+    facebook: '#1877f2',
+    youtube: '#ff0000',
+    linkedin: '#0077b5',
+  };
+  return colors[platform] || '#6366f1';
+};
 
 export default function SchedulePage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'week'>('calendar');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+  // 🆕 过滤器状态管理
+  const [filters, setFilters] = useState({
+    platform: 'all',
+    dateRange: 'next-7-days',
+    status: 'all',
+    searchTerm: '',
+  });
 
-    const days = [];
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-    
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
-    }
-    
-    return days;
-  };
+  // 🆕 拖拽状态管理
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
-  const getPostsForDate = (date: Date) => {
-    return scheduledPosts.filter(post => {
-      const postDate = new Date(post.scheduledTime);
-      return postDate.toDateString() === date.toDateString();
-    });
-  };
+  // 🆕 React Query mutation for optimistic updates
+  const updateScheduleMutation = useUpdatePostSchedule();
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(prev.getMonth() - 1);
-      } else {
-        newDate.setMonth(prev.getMonth() + 1);
+  // 🔧 修复: 使用 React Query 获取真实数据
+  const { data: posts = scheduledPosts, isLoading } = useQuery({
+    queryKey: ["posts"],
+    queryFn: async () => {
+      const response = await fetch('/api/posts');
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts');
       }
-      return newDate;
+      const result = await response.json();
+      // 为每个 post 添加 color 属性
+      return result.data.map((post: ScheduledPost) => ({
+        ...post,
+        color: getPlatformColor(post.platform),
+      }));
+    },
+    // 开发环境下使用 mock 数据作为 fallback
+    placeholderData: scheduledPosts,
+  });
+
+  // 🆕 过滤逻辑实现
+  const filteredPosts = React.useMemo(() => {
+    return posts.filter((post: ScheduledPost) => {
+      // 平台过滤
+      if (filters.platform !== 'all' && post.platform !== filters.platform) {
+        return false;
+      }
+
+      // 状态过滤
+      if (filters.status !== 'all' && post.status !== filters.status) {
+        return false;
+      }
+
+      // 日期范围过滤
+      const postDate = new Date(post.scheduledTime);
+      const now = new Date();
+
+      switch (filters.dateRange) {
+        case 'next-7-days':
+          const sevenDaysLater = new Date(now);
+          sevenDaysLater.setDate(now.getDate() + 7);
+          if (postDate < now || postDate > sevenDaysLater) return false;
+          break;
+        case 'next-30-days':
+          const thirtyDaysLater = new Date(now);
+          thirtyDaysLater.setDate(now.getDate() + 30);
+          if (postDate < now || postDate > thirtyDaysLater) return false;
+          break;
+        case 'this-month':
+          if (postDate.getMonth() !== now.getMonth() ||
+              postDate.getFullYear() !== now.getFullYear()) {
+            return false;
+          }
+          break;
+        // 'all-scheduled' 不需要额外过滤
+      }
+
+      // 🆕 搜索词过滤
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
+        const contentMatch = post.content.toLowerCase().includes(searchLower);
+        const platformMatch = post.platform.toLowerCase().includes(searchLower);
+        return contentMatch || platformMatch;
+      }
+
+      return true;
+    });
+  }, [filters, posts]);
+
+  // 🆕 操作处理函数
+  const handleViewPost = (postId: string) => {
+    console.log('View post:', postId);
+    // TODO: 打开帖子详情 Modal
+  };
+
+  const handleEditPost = (postId: string) => {
+    console.log('Edit post:', postId);
+    // TODO: 打开编辑 Modal 或跳转编辑页面
+  };
+
+  const handleDeletePost = (postId: string) => {
+    console.log('Delete post:', postId);
+    // TODO: 显示确认对话框，调用删除 API
+  };
+
+  const handleDuplicatePost = (postId: string) => {
+    console.log('Duplicate post:', postId);
+    // TODO: 复制帖子并打开编辑 Modal
+  };
+
+  // 🆕 拖拽处理函数
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    setActiveId(null);
+
+    if (!over) return;
+
+    // active.id 是帖子 ID，over.id 是目标日期的 ISO 字符串
+    const postId = active.id as string;
+    const targetDateStr = over.id as string;
+
+    // 计算新的调度时间（保持原有时间，只更新日期）
+    const post = posts.find((p: ScheduledPost) => p.id === postId);
+    if (!post) return;
+
+    const currentTime = new Date(post.scheduledTime);
+    const targetDate = new Date(targetDateStr);
+
+    targetDate.setHours(currentTime.getHours());
+    targetDate.setMinutes(currentTime.getMinutes());
+    targetDate.setSeconds(currentTime.getSeconds());
+
+    const newScheduledTime = targetDate.toISOString();
+
+    // 🔧 修复: 移除本地 setPosts，完全依赖 React Query 的乐观更新
+    // React Query mutation 会在 onMutate 中处理乐观更新
+    updateScheduleMutation.mutate({
+      postId,
+      scheduledTime: newScheduledTime,
     });
   };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  const days = getDaysInMonth(currentDate);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+        {/* Header - 响应式优化 */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Content Calendar</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Plan and schedule your social media posts</p>
+            <h1 className="text-2xl md:text-3xl font-semibold text-foreground">Content Calendar</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Plan and schedule your social media posts
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg">
+          <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
+            {/* View mode toggle - 响应式优化 */}
+            <div className="inline-flex items-center bg-muted/50 rounded-lg p-1 gap-1 flex-1 sm:flex-none">
               <button
                 onClick={() => setViewMode('calendar')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  viewMode === 'calendar' 
-                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
+                className={cn(
+                  "flex items-center justify-center gap-2 px-2 sm:px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 flex-1 sm:flex-none",
+                  viewMode === 'calendar'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                )}
               >
-                <Calendar className="w-4 h-4 mr-2" />
-                Calendar
+                <CalendarIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Month</span>
+              </button>
+              <button
+                onClick={() => setViewMode('week')}
+                className={cn(
+                  "flex items-center justify-center gap-2 px-2 sm:px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 flex-1 sm:flex-none",
+                  viewMode === 'week'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                )}
+              >
+                <Clock className="w-4 h-4" />
+                <span className="hidden sm:inline">Week</span>
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  viewMode === 'list' 
-                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
+                className={cn(
+                  "flex items-center justify-center gap-2 px-2 sm:px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 flex-1 sm:flex-none",
+                  viewMode === 'list'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                )}
               >
-                <List className="w-4 h-4 mr-2" />
-                List
+                <List className="w-4 h-4" />
+                <span className="hidden sm:inline">List</span>
               </button>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
+            {/* Schedule Post button - 响应式优化 */}
+            <Button className="gap-2 flex-shrink-0">
               <Plus className="w-4 h-4" />
-              Schedule Post
-            </button>
+              <span className="hidden sm:inline">Schedule Post</span>
+              <span className="sm:hidden">New</span>
+            </Button>
           </div>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
         {viewMode === 'calendar' ? (
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-            {/* Calendar Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigateMonth('prev')}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                  {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </h2>
-                <button
-                  onClick={() => navigateMonth('next')}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-              <button
-                onClick={() => setCurrentDate(new Date())}
-                className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-              >
-                Today
-              </button>
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="p-6">
-              {/* Days of week header */}
-              <div className="grid grid-cols-7 gap-4 mb-4">
-                {daysOfWeek.map((day) => (
-                  <div key={day} className="text-center text-sm font-medium text-slate-500 dark:text-slate-400 py-2">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar days */}
-              <div className="grid grid-cols-7 gap-4">
-                {days.map((day, index) => (
-                  <div
-                    key={index}
-                    className={`min-h-[120px] p-2 border border-slate-200 dark:border-slate-700 rounded-lg ${
-                      day ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800'
-                    } transition-colors cursor-pointer`}
-                    onClick={() => day && setSelectedDate(day)}
-                  >
-                    {day && (
-                      <>
-                        <div className={`text-sm font-medium mb-2 ${
-                          isToday(day) 
-                            ? 'text-blue-600 dark:text-blue-400' 
-                            : 'text-slate-900 dark:text-slate-100'
-                        }`}>
-                          {day.getDate()}
-                        </div>
-                        <div className="space-y-1">
-                          {getPostsForDate(day).slice(0, 3).map((post) => (
-                            <div
-                              key={post.id}
-                              className="text-xs p-1 rounded text-white truncate"
-                              style={{ backgroundColor: post.color }}
-                            >
-                              {new Date(post.scheduledTime).toLocaleTimeString('en-US', { 
-                                hour: 'numeric', 
-                                minute: '2-digit',
-                                hour12: true 
-                              })} - {post.platform}
-                            </div>
-                          ))}
-                          {getPostsForDate(day).length > 3 && (
-                            <div className="text-xs text-slate-500 dark:text-slate-400">
-                              +{getPostsForDate(day).length - 3} more
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          /* 🎨 Glass Month View - 玻璃态月视图 */
+          <GlassMonthView
+            posts={filteredPosts}
+            onNewPost={() => {/* TODO: 导航到 compose 页面 */}}
+            onDateSelect={setSelectedDate}
+          />
+        ) : viewMode === 'week' ? (
+          /* 🆕 Week View with Drag and Drop */
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <WeekView
+              posts={filteredPosts}
+              currentWeek={currentWeek}
+              onWeekChange={setCurrentWeek}
+              onViewPost={handleViewPost}
+              onEditPost={handleEditPost}
+              onDuplicatePost={handleDuplicatePost}
+              onDeletePost={handleDeletePost}
+            />
+          </DndContext>
         ) : (
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">Scheduled Posts</h2>
-              <div className="flex items-center gap-4">
-                <select className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>All Platforms</option>
-                  <option>Twitter</option>
-                  <option>Facebook</option>
-                  <option>Instagram</option>
-                  <option>LinkedIn</option>
-                  <option>YouTube</option>
-                </select>
-                <select className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Next 7 days</option>
-                  <option>Next 30 days</option>
-                  <option>This month</option>
-                  <option>All scheduled</option>
-                </select>
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="text-xl">Scheduled Posts</CardTitle>
+              {/* 🆕 过滤器和搜索栏 - 响应式优化 */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 mt-4">
+                {/* 🆕 搜索框 */}
+                <div className="relative flex-1 w-full md:max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Search posts..."
+                    className="w-full px-4 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={filters.searchTerm}
+                    onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+                  />
+                </div>
+
+                {/* 🆕 过滤器组 - 在小屏幕上网格布局 */}
+                <div className="grid grid-cols-2 md:flex gap-3">
+                  {/* 🆕 平台过滤器（绑定状态） */}
+                  <select
+                    className="px-3 md:px-4 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={filters.platform}
+                    onChange={(e) => setFilters(prev => ({ ...prev, platform: e.target.value }))}
+                  >
+                    <option value="all">All Platforms</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="youtube">YouTube</option>
+                  </select>
+
+                  {/* 🆕 日期范围过滤器（绑定状态） */}
+                  <select
+                    className="px-3 md:px-4 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={filters.dateRange}
+                    onChange={(e) => setFilters(prev => ({ ...prev, dateRange: e.target.value }))}
+                  >
+                    <option value="next-7-days">Next 7 days</option>
+                    <option value="next-30-days">Next 30 days</option>
+                    <option value="this-month">This month</option>
+                    <option value="all-scheduled">All scheduled</option>
+                  </select>
+
+                  {/* 🆕 状态过滤器 */}
+                  <select
+                    className="px-3 md:px-4 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring col-span-2 md:col-span-1"
+                    value={filters.status}
+                    onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                  >
+                    <option value="all">All Status</option>
+                    <option value="draft">Draft</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="published">Published</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div className="divide-y divide-slate-200 dark:divide-slate-700">
-              {scheduledPosts.map((post) => (
-                <div key={post.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: post.color }}
-                        />
-                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 capitalize">
-                          {post.platform}
-                        </span>
-                        <span className="text-sm text-slate-500 dark:text-slate-400">
-                          {new Date(post.scheduledTime).toLocaleDateString()} at{' '}
-                          {new Date(post.scheduledTime).toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: '2-digit',
-                            hour12: true 
-                          })}
-                        </span>
-                      </div>
-                      <p className="text-slate-700 dark:text-slate-300 mb-2">{post.content}</p>
-                      <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span>Scheduled</span>
+
+              {/* 🆕 过滤结果统计 */}
+              <div className="text-sm text-muted-foreground mt-2">
+                Showing {filteredPosts.length} of {scheduledPosts.length} posts
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {/* 🆕 使用 filteredPosts 替代 scheduledPosts */}
+                {filteredPosts.length > 0 ? (
+                  filteredPosts.map((post: ScheduledPost) => (
+                    <div key={post.id} className="p-6 hover:bg-accent/50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: post.color }}
+                            />
+                            <span className="text-sm font-medium capitalize">
+                              {post.platform}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(post.scheduledTime).toLocaleDateString()} at{' '}
+                              {new Date(post.scheduledTime).toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-sm mb-2">{post.content}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            <span>Scheduled</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 ml-4">
+                          {/* 🆕 绑定 onClick 事件 */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewPost(post.id)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditPost(post.id)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDeletePost(post.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <button className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                  ))
+                ) : (
+                  /* 🆕 空状态提示 */
+                  <div className="p-12 text-center">
+                    <p className="text-muted-foreground">No posts match your filters</p>
+                    <Button
+                      variant="ghost"
+                      className="mt-2"
+                      onClick={() => setFilters({ platform: 'all', dateRange: 'next-7-days', status: 'all', searchTerm: '' })}
+                    >
+                      Clear filters
+                    </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

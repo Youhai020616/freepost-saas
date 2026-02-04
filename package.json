@@ -5,7 +5,13 @@
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --parallel --filter @freepost/api --filter @freepost/web dev",
+    "dev": "bash scripts/dev.sh",
+    "dev:direct": "pnpm --parallel --filter @freepost/api --filter @freepost/web dev",
+    "dev:web": "pnpm --filter @freepost/web dev",
+    "dev:api": "pnpm --filter @freepost/api dev",
+    "dev:clean": "bash scripts/cleanup-ports.sh && pnpm dev",
+    "cleanup": "bash scripts/cleanup-ports.sh",
+    "test:api": "bash scripts/test-api.sh",
     "start": "pnpm -r start",
     "lint": "pnpm -r lint"
   }

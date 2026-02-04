@@ -114,31 +114,44 @@ open http://localhost:3000/dashboard
 ### 必需变量
 
 ```env
-# 数据库配置
-DATABASE_URL="postgresql://user:pass@host:5432/db?pgbouncer=true"
-DIRECT_URL="postgresql://user:pass@host:5432/db"
+# 数据库配置（Supabase PostgreSQL）
+DATABASE_URL="postgresql://postgres.[PROJECT_ID]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[PROJECT_ID]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
 
 # 身份验证
 AUTH_SECRET="your-256-bit-secret-key"
+
+# Supabase 存储（主要方案）
+SUPABASE_URL="https://your-project-id.supabase.co"
+SUPABASE_ANON_KEY="your-anon-public-key"
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+SUPABASE_STORAGE_BUCKET="media"
 
 # Stripe 支付
 STRIPE_PUBLISHABLE_KEY="pk_test_..."
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
-
-# AWS S3 存储
-AWS_S3_BUCKET="your-bucket-name"
-AWS_ACCESS_KEY_ID="your-access-key"
-AWS_SECRET_ACCESS_KEY="your-secret-key"
+STRIPE_LIVE=false  # false=模拟模式, true=真实支付
 
 # 应用配置
 APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+TENANT_MODE="path"  # path | subdomain
 ```
 
 ### 数据库 URL 说明
 
-- `DATABASE_URL`：运行时使用（Supabase Pooler，支持无服务器）
-- `DIRECT_URL`：迁移时使用（直连数据库，避免连接池问题）
+- `DATABASE_URL`：运行时使用（Supabase Pooler，支持无服务器，端口 6543）
+- `DIRECT_URL`：迁移时使用（直连数据库，避免连接池问题，端口 5432）
+
+### Supabase Storage 配置
+
+- **SUPABASE_URL**：项目 API 端点
+- **SUPABASE_ANON_KEY**：客户端公开密钥（可在前端使用）
+- **SUPABASE_SERVICE_ROLE_KEY**：服务端密钥（敏感，仅后端使用）
+- **SUPABASE_STORAGE_BUCKET**：媒体文件存储桶（需要在 Supabase Dashboard 创建）
+
+> **备用方案**：如需使用 AWS S3，可配置 `S3_REGION`、`S3_ACCESS_KEY_ID`、`S3_SECRET_ACCESS_KEY`
 
 ## API 路由规范
 
@@ -212,7 +225,7 @@ return { success: false, error: 'Message' };
 - Next.js Image Optimization 已启用
 - Turbopack 用于更快的构建
 - 数据库查询使用索引（见 schema `@@index`）
-- 媒体文件通过 S3 CDN 分发
+- 媒体文件通过 Supabase Storage CDN 分发
 
 ### 安全检查
 
@@ -252,12 +265,14 @@ vercel logs
 
 ## 技术栈总结
 
-- **框架**：Next.js 15.5.3（App Router + Server Actions）
-- **UI**：Radix UI + Tailwind CSS v4 + Framer Motion
+- **框架**：Next.js 15.5.3（App Router + Server Actions + Turbopack）
+- **UI**：Radix UI + Tailwind CSS v4 + Framer Motion + Lucide Icons
 - **状态管理**：TanStack Query（@tanstack/react-query）
+- **拖拽排序**：@dnd-kit/core + @dnd-kit/sortable
 - **数据库**：Prisma 6.16.2 + PostgreSQL（Supabase）
 - **认证**：BetterAuth 1.3.11
-- **支付**：Stripe
-- **存储**：AWS S3
-- **限流**：Upstash Redis + Ratelimit
+- **支付**：Stripe（支持开发模拟模式）
+- **存储**：Supabase Storage（主要）+ AWS S3（可选）
+- **限流**：Upstash Redis + Ratelimit（可选）
 - **包管理器**：pnpm（workspace 模式）
+- **部署**：Vercel（Serverless Functions + Cron Jobs）

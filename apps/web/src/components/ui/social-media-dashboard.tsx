@@ -6,6 +6,8 @@ import React, {
   useState,
   useCallback,
 } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 /**
  * ===================================
@@ -434,6 +436,7 @@ export function SocialMediaDashboard({
   defaultSidebarCollapsed = false,
   onSidebarCollapsedChange,
 }: SocialDashboardProps) {
+  const pathname = usePathname();
   const lsKey = persistKey ? (k: string) => `smd:${persistKey}:${k}` : null;
 
   // State management
@@ -847,25 +850,29 @@ export function SocialMediaDashboard({
           {/* Navigation Links - Buffer style */}
           <nav className="hidden md:flex items-center">
             <div className="flex items-center space-x-1">
-              {topNavLinks.map((link, index) => (
-                <div key={link.id} className="relative">
-                  <button
-                    onClick={() => onSectionChange?.(link.id)}
-                    className={cx(
-                      "px-4 py-3 text-sm font-medium transition-all relative",
-                      (activeSection || "dashboard") === link.id
-                        ? "text-black dark:text-white"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              {topNavLinks.map((link, index) => {
+                const href = `/${link.id}`;
+                const isActive = pathname === href || (pathname === '/dashboard' && link.id === 'dashboard');
+                return (
+                  <div key={link.id} className="relative">
+                    <Link
+                      href={href}
+                      className={cx(
+                        "px-4 py-3 text-sm font-medium transition-all relative block",
+                        isActive
+                          ? "text-black dark:text-white"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                    {/* Active indicator - black underline */}
+                    {isActive && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white"></div>
                     )}
-                  >
-                    {link.label}
-                  </button>
-                  {/* Active indicator - black underline */}
-                  {(activeSection || "dashboard") === link.id && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white"></div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </nav>
 
@@ -1009,24 +1016,28 @@ export function SocialMediaDashboard({
       <nav className="md:hidden border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <div className="flex items-center justify-center px-4 py-2">
           <div className="flex items-center space-x-1 overflow-x-auto">
-            {topNavLinks.map((link) => (
-              <div key={link.id} className="relative flex-shrink-0">
-                <button
-                  onClick={() => onSectionChange?.(link.id)}
-                  className={cx(
-                    "px-3 py-2 text-sm font-medium transition-all relative whitespace-nowrap",
-                    (activeSection || "dashboard") === link.id
-                      ? "text-black dark:text-white"
-                      : "text-slate-600 dark:text-slate-400"
+            {topNavLinks.map((link) => {
+              const href = `/${link.id}`;
+              const isActive = pathname === href || (pathname === '/dashboard' && link.id === 'dashboard');
+              return (
+                <div key={link.id} className="relative flex-shrink-0">
+                  <Link
+                    href={href}
+                    className={cx(
+                      "px-3 py-2 text-sm font-medium transition-all relative whitespace-nowrap block",
+                      isActive
+                        ? "text-black dark:text-white"
+                        : "text-slate-600 dark:text-slate-400"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white"></div>
                   )}
-                >
-                  {link.label}
-                </button>
-                {(activeSection || "dashboard") === link.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white"></div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </nav>

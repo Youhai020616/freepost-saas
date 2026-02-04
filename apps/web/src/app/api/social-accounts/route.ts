@@ -1,31 +1,78 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSessionAndWorkspace } from "@/lib/guards";
+import { handleApiError, errors } from "@/lib/errors";
+import { validateRequest } from "@/lib/validation";
+import { logger } from "@/lib/logger";
+import { encryptToken } from "@/lib/crypto";
+import { z } from "zod";
+import { patterns } from "@/lib/validation/schemas";
+import { Prisma } from "@prisma/client";
+
+// Schema for creating social account
+const createSocialAccountSchema = z.object({
+  provider: patterns.platform,
+  externalId: z.string().min(1, 'External ID is required'),
+  accessToken: z.string().min(1, 'Access token is required'),
+  refreshToken: z.string().optional(),
+  meta: z.record(z.string(), z.unknown()).optional(),
+});
 
 // POST /api/social-accounts - create a social account record (after oauth)
 export async function POST(req: NextRequest) {
   try {
     const { workspaceId } = await requireSessionAndWorkspace();
-    const body = await req.json();
-    const { provider, externalId, accessToken, refreshToken, meta } = body ?? {};
-    if (!provider || !externalId || !accessToken) {
-      return NextResponse.json({ error: "provider, externalId, accessToken required" }, { status: 400 });
-    }
-    const acc = await prisma.socialAccount.create({
-      data: {
+
+    // Validate request body
+    const data = await validateRequest(req, createSocialAccountSchema);
+
+    logger.info('Creating social account', {
+      workspaceId,
+      provider: data.provider,
+      externalId: data.externalId
+    });
+
+    // Encrypt tokens before storing
+    const encryptedAccessToken = await encryptToken(data.accessToken);
+    const encryptedRefreshToken = data.refreshToken 
+      ? await encryptToken(data.refreshToken) 
+      : null;
+
+    // Use upsert to atomically create or update - prevents race conditions
+    // Combined with @@unique constraint in schema, this is fully race-safe
+    const account = await prisma.socialAccount.upsert({
+      where: {
+        // Use the unique constraint for lookup
+        workspaceId_provider_externalId: {
+          workspaceId,
+          provider: data.provider,
+          externalId: data.externalId,
+        },
+      },
+      update: {
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
+        meta: data.meta ? (data.meta as Prisma.InputJsonValue) : Prisma.JsonNull,
+      },
+      create: {
         workspaceId,
-        provider,
-        externalId,
-        accessToken,
-        refreshToken: refreshToken ?? null,
-        meta: meta ?? null,
+        provider: data.provider,
+        externalId: data.externalId,
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
+        meta: data.meta ? (data.meta as Prisma.InputJsonValue) : Prisma.JsonNull,
       },
     });
-    return NextResponse.json({ data: acc }, { status: 201 });
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    const status = message === "unauthorized" ? 401 : message === "forbidden" ? 403 : 400;
-    return NextResponse.json({ error: message }, { status });
+
+    const isUpdate = account.updatedAt.getTime() - account.createdAt.getTime() > 1000;
+    logger.info(isUpdate ? 'Social account updated' : 'Social account created', {
+      accountId: account.id,
+      provider: account.provider
+    });
+
+    return NextResponse.json({ data: account }, { status: isUpdate ? 200 : 201 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
@@ -33,11 +80,31 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   try {
     const { workspaceId } = await requireSessionAndWorkspace();
-    const list = await prisma.socialAccount.findMany({ where: { workspaceId }, orderBy: { createdAt: "desc" } });
-    return NextResponse.json({ data: list });
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    const status = message === "unauthorized" ? 401 : message === "forbidden" ? 403 : 400;
-    return NextResponse.json({ error: message }, { status });
+
+    logger.debug('Fetching social accounts', { workspaceId });
+
+    // Optimized query - don't expose tokens in list view
+    const accounts = await prisma.socialAccount.findMany({
+      where: { workspaceId },
+      select: {
+        id: true,
+        provider: true,
+        externalId: true,
+        meta: true,
+        createdAt: true,
+        updatedAt: true,
+        // Exclude sensitive tokens
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    logger.debug('Social accounts fetched', {
+      workspaceId,
+      count: accounts.length
+    });
+
+    return NextResponse.json({ data: accounts });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

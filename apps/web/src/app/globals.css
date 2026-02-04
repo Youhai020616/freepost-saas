@@ -1,6 +1,31 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Aurora Animation */
+/* ========================================
+   性能优化 - Performance Optimizations
+   ======================================== */
+
+/* 平滑滚动 - 仅在用户未设置 reduced motion 时启用 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* 禁用动画 - 尊重用户的无障碍偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Aurora Animation - GPU 加速优化 */
 @keyframes aurora {
   from {
     background-position: 50% 50%, 50% 50%;
@@ -10,85 +35,115 @@
   }
 }
 
-@theme inline {
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-card: var(--card);
-  --color-border: var(--border);
-  --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
-  /* Aurora Animation */
-  --animate-aurora: aurora 60s linear infinite;
-}
-
-:root {
-  --radius: 1rem;
-  --accent: oklch(0.89 0 0);
-  --destructive-foreground: oklch(0.985 0 0);
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --card: #ffffff;
-  --border: #e5e5e5;
-  --ring: #171717;
-
-  /* Aurora Colors - Enhanced */
-  --white: #ffffff;
-  --black: #000000;
-  --transparent: transparent;
-  --blue-300: #60a5fa;
-  --blue-400: #3b82f6;
-  --blue-500: #2563eb;
-  --blue-600: #1d4ed8;
-  --indigo-300: #8b5cf6;
-  --indigo-400: #7c3aed;
-  --violet-200: #c4b5fd;
-  --violet-300: #a78bfa;
-  --purple-400: #a855f7;
-  --cyan-400: #22d3ee;
-  --teal-400: #2dd4bf;
-}
-
-.dark {
-  --background: oklch(0.125 0 0);
-  --foreground: #ededed;
-  --accent: oklch(0.229 0 0);
-  --destructive-foreground: oklch(0.985 0 0);
-  --muted: #262626;
-  --muted-foreground: #a3a3a3;
-  --card: #1a1a1a;
-  --border: #404040;
-  --ring: #ededed;
-
-  /* Aurora Colors for Dark Mode - Enhanced */
-  --blue-300: #38bdf8;
-  --blue-400: #0ea5e9;
-  --blue-500: #0284c7;
-  --blue-600: #0369a1;
-  --indigo-300: #a78bfa;
-  --indigo-400: #8b5cf6;
-  --violet-200: #c4b5fd;
-  --violet-300: #a78bfa;
-  --purple-400: #c084fc;
-  --cyan-400: #06b6d4;
-  --teal-400: #14b8a6;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
+    --radius: 1rem;
+    --accent: oklch(0.89 0 0);
+    --destructive-foreground: oklch(0.985 0 0);
+    --background: #ffffff;
+    --foreground: #171717;
+    --muted: #f5f5f5;
+    --muted-foreground: #737373;
+    --card: #ffffff;
+    --border: #e5e5e5;
+    --ring: #171717;
+    --primary: #171717;
+    --primary-foreground: #ffffff;
+
+    /* Aurora Colors - Enhanced */
+    --white: #ffffff;
+    --black: #000000;
+    --transparent: transparent;
+    --blue-300: #60a5fa;
+    --blue-400: #3b82f6;
+    --blue-500: #2563eb;
+    --blue-600: #1d4ed8;
+    --indigo-300: #8b5cf6;
+    --indigo-400: #7c3aed;
+    --violet-200: #c4b5fd;
+    --violet-300: #a78bfa;
+    --purple-400: #a855f7;
+    --cyan-400: #22d3ee;
+    --teal-400: #2dd4bf;
+  }
+
+  .dark {
+    --background: oklch(0.125 0 0);
     --foreground: #ededed;
+    --accent: oklch(0.229 0 0);
+    --destructive-foreground: oklch(0.985 0 0);
+    --muted: #262626;
+    --muted-foreground: #a3a3a3;
+    --card: #1a1a1a;
+    --border: #404040;
+    --ring: #ededed;
+    --primary: #ededed;
+    --primary-foreground: #171717;
+
+    /* Aurora Colors for Dark Mode - Enhanced */
+    --blue-300: #38bdf8;
+    --blue-400: #0ea5e9;
+    --blue-500: #0284c7;
+    --blue-600: #0369a1;
+    --indigo-300: #a78bfa;
+    --indigo-400: #8b5cf6;
+    --violet-200: #c4b5fd;
+    --violet-300: #a78bfa;
+    --purple-400: #c084fc;
+    --cyan-400: #06b6d4;
+    --teal-400: #14b8a6;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: #0a0a0a;
+      --foreground: #ededed;
+    }
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Aurora 动画 - GPU 加速 */
+  .animate-aurora {
+    animation: aurora 60s linear infinite;
+    will-change: background-position;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* GPU 加速工具类 */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  /* 优化滚动容器 */
+  .scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* 图片加载优化 */
+  .img-optimized {
+    content-visibility: auto;
+  }
+
+  /* 减少重绘的过渡 */
+  .transition-gpu {
+    transition-property: transform, opacity;
+    will-change: transform, opacity;
+  }
+
+  /* 延迟加载容器 */
+  .lazy-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+  }
 }
